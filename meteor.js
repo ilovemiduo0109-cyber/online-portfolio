@@ -12,7 +12,7 @@
     document.body.classList.contains("project-page");
 
   const SIZE_SCALE = isSubpage ? 0.5 : 1;
-  const ALPHA_SCALE = isSubpage ? 0.5 : 1;
+  const ALPHA_SCALE = isSubpage ? 0.7 : 1;
   const SUBPAGE_CROSS_EXTRA_SEC = 0.7;
   const HOME_SPEED_MIN = 0.4;
   const HOME_SPEED_MAX = 1.9;
