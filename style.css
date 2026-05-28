@@ -130,6 +130,8 @@ body,
 
   background: transparent;
 
+  touch-action: manipulation;
+
 }
 
 
@@ -173,6 +175,132 @@ body,
   pointer-events: none;
 
   opacity: 0.55;
+
+}
+
+
+
+.is-mobile .ui-hint {
+
+  font-size: 0;
+
+}
+
+
+
+.is-mobile .ui-hint::after {
+
+  content: "Tap a face to open a project";
+
+  font-size: 0.58rem;
+
+  letter-spacing: 0.22em;
+
+  text-transform: uppercase;
+
+}
+
+
+
+.webgl-fallback {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 100%;
+
+  padding: 2rem 1.5rem 4rem;
+
+  text-align: center;
+
+  font-family: "JetBrains Mono", monospace;
+
+  color: rgba(30, 30, 30, 0.72);
+
+}
+
+
+
+.webgl-fallback-msg {
+
+  font-size: 0.62rem;
+
+  letter-spacing: 0.18em;
+
+  text-transform: uppercase;
+
+  margin-bottom: 0.75rem;
+
+}
+
+
+
+.webgl-fallback-sub {
+
+  font-size: 0.58rem;
+
+  letter-spacing: 0.14em;
+
+  opacity: 0.65;
+
+  margin-bottom: 1.25rem;
+
+}
+
+
+
+.webgl-fallback-list {
+
+  list-style: none;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.85rem;
+
+}
+
+
+
+.webgl-fallback-list a {
+
+  color: rgba(30, 30, 30, 0.78);
+
+  text-decoration: none;
+
+  font-size: 0.58rem;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+
+  border-bottom: 1px solid rgba(30, 30, 30, 0.22);
+
+  padding-bottom: 0.15rem;
+
+}
+
+
+
+.webgl-fallback-list a:hover {
+
+  color: rgba(30, 30, 30, 0.95);
+
+}
+
+
+
+.webgl-fallback-num {
+
+  opacity: 0.55;
+
+  margin-right: 0.35rem;
 
 }
 

@@ -1,8 +1,31 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { detectMobile, applyMobileClass } from "../config/mobile.js";
+
+const FALLBACK_LINKS = [
+  { num: "01", href: "01-DunhuangReplication/", label: "Dunhuang Cave 285 Replication" },
+  { num: "02", href: "02-GatehouseReplication/", label: "Beijing Siheyuan Gatehouse" },
+  { num: "03", href: "03-VolunteerteachingProject/", label: "Yunnan Border Aesthetic Education" },
+  { num: "04", href: "04-FolkrhymeArchiving/", label: "Xunyao Folk Rhyme Archiving" },
+];
+
+function showWebGLFallback(host) {
+  const list = FALLBACK_LINKS.map(
+    (p) =>
+      `<li><a href="${p.href}"><span class="webgl-fallback-num">${p.num}</span> ${p.label}</a></li>`
+  ).join("");
+  host.innerHTML = `<div class="webgl-fallback" role="status">
+    <p class="webgl-fallback-msg">3D view unavailable on this device.</p>
+    <p class="webgl-fallback-sub">Open a project directly:</p>
+    <ul class="webgl-fallback-list">${list}</ul>
+  </div>`;
+}
 
 /** 主场景：renderer、camera、controls、灯光 */
 export function setupScene() {
+  const isMobile = detectMobile();
+  applyMobileClass(isMobile);
+
   const host = document.getElementById("canvas-host");
   const scene = new THREE.Scene();
   scene.background = null;
@@ -11,10 +34,24 @@ export function setupScene() {
   const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 80);
   camera.position.set(0, 2.8, 9.5);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      antialias: !isMobile,
+      alpha: true,
+      powerPreference: isMobile ? "low-power" : "default",
+    });
+    if (!renderer.getContext()) {
+      throw new Error("WebGL context unavailable");
+    }
+  } catch {
+    showWebGLFallback(host);
+    return { webglFailed: true, isMobile, host };
+  }
+
   renderer.setClearColor(0x000000, 0);
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -28,10 +65,17 @@ export function setupScene() {
   controls.maxDistance = 22;
   controls.minPolarAngle = 0.06;
   controls.maxPolarAngle = Math.PI - 0.06;
-  controls.enablePan = true;
+  controls.enablePan = !isMobile;
   controls.panSpeed = 0.4;
   controls.rotateSpeed = 0.55;
   controls.zoomSpeed = 0.7;
+
+  if (isMobile) {
+    controls.enableRotate = false;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    controls.enabled = false;
+  }
 
   const _orbitOffset = new THREE.Vector3();
   const _orbitSpherical = new THREE.Spherical();
@@ -60,5 +104,5 @@ export function setupScene() {
   rim.position.set(0, 2, -8);
   scene.add(rim);
 
-  return { host, scene, camera, renderer, controls };
+  return { host, scene, camera, renderer, controls, isMobile, webglFailed: false };
 }

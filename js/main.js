@@ -24,7 +24,14 @@ import { setupInteraction } from "./interaction/interaction.js";
 
 const sceneSetup = setupScene();
 
-const ctx = createMonumentContext(sceneSetup);
+if (sceneSetup.webglFailed) {
+  /* Fallback links rendered in #canvas-host */
+} else {
+  runMonumentApp(sceneSetup);
+}
+
+function runMonumentApp(sceneSetup) {
+  const ctx = createMonumentContext(sceneSetup);
 
 
 
@@ -94,7 +101,12 @@ window.addEventListener("resize", () => {
 
   ctx.renderer.setSize(window.innerWidth, window.innerHeight);
 
+  ctx.renderer.setPixelRatio(
+    ctx.isMobile ? 1 : Math.min(window.devicePixelRatio, 2)
+  );
+
   fitCameraToMonumentScreenHeight();
 
 });
 
+}

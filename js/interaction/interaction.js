@@ -24,8 +24,42 @@ function rebuildFaceText(ctx, entry, focus) {
   entry.lastFocus = focus;
 }
 
-/** Raycaster + 悬停显影 + 点击触发过渡 */
-export function setupInteraction(ctx, transition) {
+function setupMobileInteraction(ctx, transition) {
+  const { camera, renderer, slopeMeshes } = ctx;
+  const canvas = renderer.domElement;
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+
+  function pickSlopeFromEvent(e) {
+    const rect = canvas.getBoundingClientRect();
+    pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    return raycaster.intersectObjects(slopeMeshes, false)[0]?.object ?? null;
+  }
+
+  let lastTapAt = 0;
+
+  function handleTap(e) {
+    if (transition.isTransitioning) return;
+    if (e.type === "pointerup" && e.pointerType === "mouse" && e.button !== 0) return;
+    const now = performance.now();
+    if (now - lastTapAt < 400) return;
+    const mesh = pickSlopeFromEvent(e);
+    if (mesh?.userData.href) {
+      lastTapAt = now;
+      e.preventDefault();
+      transition.beginTransition(mesh.userData.faceId, mesh.userData.href);
+    }
+  }
+
+  canvas.addEventListener("pointerup", handleTap, { passive: false });
+  canvas.addEventListener("click", handleTap);
+
+  return { resetInteractionState: () => {}, setFaceFocus: () => {} };
+}
+
+function setupDesktopInteraction(ctx, transition) {
   const {
     host,
     camera,
@@ -113,4 +147,12 @@ export function setupInteraction(ctx, transition) {
   });
 
   return { resetInteractionState, setFaceFocus };
+}
+
+/** Raycaster + 悬停显影 + 点击触发过渡（桌面）；手机仅 tap 导航 */
+export function setupInteraction(ctx, transition) {
+  if (ctx.isMobile) {
+    return setupMobileInteraction(ctx, transition);
+  }
+  return setupDesktopInteraction(ctx, transition);
 }

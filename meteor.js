@@ -4,6 +4,11 @@
  * 子页：线条 ×0.5；每条线横穿时间 = 同距离首页随机速度下的时间 + 0.7s
  */
 (function () {
+  const isMobile = window.matchMedia(
+    "(max-width: 768px), (hover: none) and (pointer: coarse)"
+  ).matches;
+  if (isMobile) return;
+
   const canvas = document.getElementById("meteor-layer");
   if (!canvas) return;
 

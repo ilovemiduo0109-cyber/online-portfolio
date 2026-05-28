@@ -296,6 +296,10 @@ export function createTransitionController(ctx) {
 
   function beginTransition(faceId, href) {
     if (isTransitioning) return;
+    if (ctx.isMobile) {
+      navigateToProject(href);
+      return;
+    }
     isTransitioning = true;
     transitionState = "act1";
     activeFaceId = faceId;
