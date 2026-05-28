@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The 'Xunyao' Folk Rhyme Archiving Initiative — Wen Tian Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Lora:ital,wght@0,400;1,400&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="project.css" />
+</head>
+<body
+  class="wrapper project-page folk-page"
+  data-text="text-content.txt"
+  data-next="../01-DunhuangReplication/"
+>
+  <svg class="svg-defs" aria-hidden="true">
+    <filter id="sandstone-grain-coarse" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.34" numOctaves="6" seed="8" stitchTiles="stitch" result="coarse">
+        <animate attributeName="seed" values="8;14;8" dur="12s" repeatCount="indefinite" />
+      </feTurbulence>
+      <feColorMatrix in="coarse" type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.38" intercept="0.06" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="sandstone-grain-fine" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="3" seed="24" stitchTiles="stitch" result="fine">
+        <animate attributeName="seed" values="24;31;24" dur="7s" repeatCount="indefinite" />
+      </feTurbulence>
+      <feColorMatrix in="fine" type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.22" intercept="0.02" />
+      </feComponentTransfer>
+    </filter>
+  </svg>
+  <div class="bg-atmosphere" aria-hidden="true"></div>
+  <canvas id="bg-screensaver" aria-hidden="true"></canvas>
+  <div class="grain-overlay grain-coarse" aria-hidden="true"></div>
+  <div class="grain-overlay grain-fine" aria-hidden="true"></div>
+  <canvas id="meteor-layer" data-variant="subpage" aria-hidden="true"></canvas>
+
+  <article class="fr-page">
+    <a class="fr-back" href="../">← Monument</a>
+
+    <header class="fr-header">
+      <h1 class="fr-title">
+        <span class="fr-title-line">The 'Xunyao' Folk Rhyme</span>
+        <span class="fr-title-line">Archiving Initiative</span>
+      </h1>
+    </header>
+
+    <figure class="fr-hero">
+      <img
+        src="hero.jpg"
+        alt="Musicians performing outdoors under a large tree"
+        width="1200"
+        height="750"
+        loading="eager"
+      />
+    </figure>
+
+    <div id="fr-intro" class="fr-prose" aria-live="polite"></div>
+
+    <div class="fr-gallery" role="group" aria-label="Fieldwork documentation">
+      <figure class="fr-gallery__item">
+        <img
+          src="progress1.jpg"
+          alt="Indoor fieldwork session at wooden tables"
+          width="480"
+          height="360"
+          loading="lazy"
+        />
+      </figure>
+      <figure class="fr-gallery__item">
+        <img
+          src="progress2.jpg"
+          alt="Outdoor circle gathering in a courtyard"
+          width="480"
+          height="360"
+          loading="lazy"
+        />
+      </figure>
+      <figure class="fr-gallery__item">
+        <img
+          src="progress3.jpg"
+          alt="Elderly man playing violin during field recording"
+          width="480"
+          height="360"
+          loading="lazy"
+        />
+      </figure>
+    </div>
+
+    <section class="fr-split" aria-label="Begging Song interview">
+      <figure class="fr-split__media">
+        <img
+          src="BeggingsongPic.jpg"
+          alt="Elderly woman in a purple plaid jacket with a small dog"
+          width="640"
+          height="853"
+          loading="lazy"
+        />
+      </figure>
+      <div id="fr-split-text" class="fr-prose fr-prose--split"></div>
+    </section>
+
+    <div id="fr-mid1" class="fr-prose"></div>
+
+    <div class="fr-performance" role="group" aria-label="Live performances for villagers">
+      <figure class="fr-performance__item">
+        <img
+          src="concert1.jpg"
+          alt="Outdoor concert audience seated under trees"
+          width="640"
+          height="440"
+          loading="lazy"
+        />
+      </figure>
+      <figure class="fr-performance__item">
+        <img
+          src="concert2.jpg"
+          alt="Musician playing guitar for seated villagers outdoors"
+          width="640"
+          height="440"
+          loading="lazy"
+        />
+      </figure>
+    </div>
+
+    <p class="fr-caption">LIVE PERFORMANCE FOR VILLAGERS</p>
+
+    <div class="fr-youtube">
+      <a
+        class="fr-youtube__link"
+        href="https://youtu.be/VmTQVKCH0CY?si=b6BmAWBPALPd2Dng"
+        target="_blank"
+        rel="noopener noreferrer"
+      >Field recording excerpt → YouTube</a>
+    </div>
+
+    <footer class="fr-footer">
+      <a id="project-next" class="fr-next" href="../01-DunhuangReplication/">click to see my next project</a>
+    </footer>
+  </article>
+
+  <script src="../bg-screensaver.js"></script>
+  <script src="../meteor.js"></script>
+  <script src="folk-page.js"></script>
+</body>
+</html>

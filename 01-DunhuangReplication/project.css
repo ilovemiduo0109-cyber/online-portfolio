@@ -1,0 +1,288 @@
+/* Dunhuang 01 — layout matched to Figma (node 6-23) */
+
+:root {
+  --dh-section-gap: 3.25rem;
+  /* process 下方、exhi 上方：在 1.5× 基础上再 ×2 → 共 3× 默认间距 */
+  --dh-section-gap-wide: calc(var(--dh-section-gap) * 3);
+}
+
+.dunhuang-page {
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100%;
+}
+
+.dunhuang-page .bg-atmosphere,
+.dunhuang-page .grain-overlay,
+.dunhuang-page #bg-screensaver {
+  position: fixed;
+}
+
+.dunhuang-page #bg-screensaver {
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
+  mix-blend-mode: soft-light;
+}
+
+.dh-page {
+  position: relative;
+  z-index: 2;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.75rem 6rem;
+}
+
+/* —— Nav —— */
+.dh-back {
+  display: inline-block;
+  margin-bottom: 2.5rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.dh-back:hover {
+  color: rgba(30, 30, 30, 0.88);
+}
+
+/* —— Title (Figma: top-left, mono, two lines) —— */
+.dh-header {
+  margin-bottom: 2.75rem;
+}
+
+.dh-title {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: clamp(1.05rem, 2.8vw, 1.65rem);
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  color: rgba(30, 30, 30, 0.88);
+  max-width: 22em;
+}
+
+.dh-title-line {
+  display: block;
+}
+
+/* —— Hero (centered square) —— */
+.dh-hero {
+  margin: 0 auto 3.25rem;
+  max-width: min(36rem, 92vw);
+}
+
+.dh-hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+/* —— Body copy (centered column, Lora) —— */
+.dh-prose {
+  font-family: "Lora", serif;
+  font-size: clamp(0.95rem, 1.35vw, 1.08rem);
+  line-height: 1.82;
+  color: rgba(30, 30, 30, 0.78);
+  text-align: center;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dh-prose p {
+  margin: 0 0 1.35rem;
+}
+
+.dh-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.dh-prose + .dh-prose,
+.dh-process + .dh-prose,
+.dh-hero + .dh-prose {
+  margin-top: 0;
+}
+
+/* spacing between sections */
+.dh-prose,
+.dh-zaojing-pair,
+.dh-lotus,
+.dh-split,
+.dh-exhi {
+  margin-bottom: var(--dh-section-gap);
+}
+
+.dh-process,
+#dh-exhi-lead {
+  margin-bottom: var(--dh-section-gap-wide);
+}
+
+/* —— Process row (3-up) —— */
+.dh-process {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dh-process__item {
+  margin: 0;
+}
+
+.dh-process__item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+/* —— Zaojing pair (OG + sketch, same row) —— */
+.dh-zaojing-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  max-width: min(42rem, 92vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.dh-zaojing-pair .dh-zaojing {
+  margin: 0;
+  max-width: none;
+}
+
+.dh-zaojing-pair .dh-zaojing img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.dh-lotus {
+  margin-top: -1.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: min(11rem, 42vw);
+}
+
+.dh-lotus img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+/* —— Split: image left, text right —— */
+.dh-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem 2.5rem;
+  align-items: center;
+  max-width: 100%;
+}
+
+.dh-split__media {
+  margin: 0;
+}
+
+.dh-split__media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.dh-prose--split {
+  text-align: left;
+  max-width: none;
+  margin: 0;
+}
+
+/* —— Exhibition wide —— */
+.dh-exhi {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+}
+
+.dh-exhi img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* —— Footer link (bottom-right, mono) —— */
+.dh-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4rem;
+  padding-top: 1rem;
+}
+
+.dh-next {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: rgba(30, 30, 30, 0.65);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(30, 30, 30, 0.22);
+}
+
+.dh-next:hover {
+  color: rgba(30, 30, 30, 0.92);
+}
+
+/* —— Tablet —— */
+@media (max-width: 900px) {
+  .dh-split {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .dh-prose--split {
+    text-align: center;
+    max-width: 36rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .dh-split__media {
+    max-width: min(22rem, 88vw);
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* —— Mobile —— */
+@media (max-width: 600px) {
+  .dh-page {
+    padding: 2rem 1.15rem 4.5rem;
+  }
+
+  .dh-process {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .dh-process__item img {
+    aspect-ratio: 16 / 10;
+  }
+
+  .dh-lotus {
+    margin-top: 0;
+  }
+}

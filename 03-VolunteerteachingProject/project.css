@@ -1,0 +1,314 @@
+/* Yunnan 03 — layout matched to reference mockup */
+
+:root {
+  --yt-gap: 2.75rem;
+  --yt-gap-wide: 4.75rem;
+  --yt-content: min(34rem, 86vw);
+  --yt-split-text: min(14rem, 38vw);
+}
+
+.yunnan-page {
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100%;
+}
+
+.yunnan-page .bg-atmosphere,
+.yunnan-page .grain-overlay,
+.yunnan-page #bg-screensaver {
+  position: fixed;
+}
+
+.yunnan-page #bg-screensaver {
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
+  mix-blend-mode: soft-light;
+}
+
+.yt-page {
+  position: relative;
+  z-index: 2;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.75rem 6rem;
+}
+
+.yt-back {
+  display: inline-block;
+  margin-bottom: 2.5rem;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.yt-back:hover {
+  color: rgba(30, 30, 30, 0.88);
+}
+
+.yt-header {
+  margin-bottom: 2.75rem;
+}
+
+.yt-title {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 700;
+  font-size: clamp(1.05rem, 2.8vw, 1.65rem);
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  color: rgba(30, 30, 30, 0.88);
+  max-width: 22em;
+}
+
+.yt-title-line {
+  display: block;
+}
+
+/* Hero pair — full content width, landscape crops */
+.yt-hero-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  width: 100%;
+  margin: 0 auto var(--yt-gap-wide);
+}
+
+.yt-hero-pair__item {
+  margin: 0;
+}
+
+.yt-hero-pair__item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 11;
+  object-fit: cover;
+}
+
+/* Body copy — centered column (intro + database blurb) */
+.yt-prose {
+  font-family: "Lora", serif;
+  font-size: clamp(0.95rem, 1.35vw, 1.08rem);
+  line-height: 1.82;
+  color: rgba(30, 30, 30, 0.78);
+  text-align: center;
+  max-width: var(--yt-content);
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: var(--yt-gap);
+}
+
+.yt-prose p {
+  margin: 0 0 1.35rem;
+}
+
+.yt-prose p:last-child {
+  margin-bottom: 0;
+}
+
+/* Narrative + conclusion — left-aligned within centered column */
+.yt-prose--left,
+.yt-prose--final {
+  text-align: left;
+  max-width: var(--yt-content);
+}
+
+.yt-prose--split {
+  text-align: left;
+  max-width: var(--yt-split-text);
+  margin: 0;
+  font-size: clamp(0.88rem, 1.2vw, 1rem);
+  line-height: 1.78;
+}
+
+#yt-intro {
+  margin-bottom: var(--yt-gap-wide);
+}
+
+#yt-mid1 {
+  margin-bottom: var(--yt-gap-wide);
+}
+
+#yt-mid2 {
+  margin-bottom: var(--yt-gap-wide);
+}
+
+#yt-final {
+  margin-top: var(--yt-gap);
+}
+
+/* Database screenshot — spans full column */
+.yt-database {
+  width: 100%;
+  margin: 0 auto var(--yt-gap);
+}
+
+.yt-database img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Carving row — equal split, poem vertically centered */
+.yt-carving {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem 2.25rem;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto var(--yt-gap-wide);
+}
+
+.yt-carving__media,
+.yt-poem {
+  min-width: 0;
+}
+
+.yt-carving__media {
+  margin: 0;
+}
+
+.yt-carving__media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.yt-poem {
+  font-family: "Lora", serif;
+  font-size: clamp(0.78rem, 1.05vw, 0.92rem);
+  line-height: 1.72;
+  color: rgba(30, 30, 30, 0.78);
+  text-align: center;
+  margin: 0;
+  padding: 0 0.35rem;
+}
+
+.yt-poem__title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(30, 30, 30, 0.72);
+  margin: 0 0 1.35rem;
+}
+
+.yt-poem__body {
+  margin: 0;
+}
+
+.yt-poem__body p {
+  margin: 0 0 0.28rem;
+}
+
+/* Full-width wall panorama — between poem and erasure */
+.yt-wall {
+  width: 100%;
+  margin: 0 auto var(--yt-gap-wide);
+}
+
+.yt-wall img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Erasure — narrow text left, wide photo right */
+.yt-erasure {
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(0, 1.32fr);
+  gap: 1.5rem 2.25rem;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto var(--yt-gap-wide);
+}
+
+.yt-erasure__media {
+  margin: 0;
+}
+
+.yt-erasure__media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.yt-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 3.5rem;
+  padding-top: 0.5rem;
+}
+
+.yt-next {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: rgba(30, 30, 30, 0.65);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(30, 30, 30, 0.22);
+}
+
+.yt-next:hover {
+  color: rgba(30, 30, 30, 0.92);
+}
+
+@media (max-width: 640px) {
+  .yt-carving,
+  .yt-erasure {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .yt-prose--left,
+  .yt-prose--final,
+  .yt-prose--split {
+    max-width: var(--yt-content);
+  }
+
+  .yt-prose--split {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .yt-carving__media {
+    max-width: min(20rem, 88vw);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .yt-erasure__media {
+    order: 2;
+  }
+
+  .yt-erasure .yt-prose--split {
+    order: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .yt-page {
+    padding: 2rem 1.15rem 4.5rem;
+  }
+
+  .yt-hero-pair {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  :root {
+    --yt-gap-wide: 3.5rem;
+  }
+}

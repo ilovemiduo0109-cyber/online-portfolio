@@ -1,0 +1,1100 @@
+/**
+ * Wen Tian Architecture — 3D 覆斗顶纪念碑
+ * Three.js + OrbitControls + 坡面贴图 + 线稿 + 3D 文字平面
+ */
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+/* -------------------------------------------------------------------------- */
+/*  项目数据                                                                   */
+/* -------------------------------------------------------------------------- */
+const FACES = [
+  {
+    id: "north",
+    tag: "[ NORTH // COV_01 ]",
+    title: "SIHEYUAN GATEHOUSE RESTORATION",
+    epigraph: "The tectonic memory of Beijing's historical fabric.",
+    href: "02-GatehouseReplication/",
+    texture: "02-GatehouseReplication/hero.jpg",
+    // 坡面四边形（覆斗：下小上大，y=0 为藻井口朝向观者）
+    verts: [
+      -0.55, 0, 0.55,   0.55, 0, 0.55,   2.35, 3.1, 2.05,   -2.35, 3.1, 2.05,
+    ],
+    textPos: [0, 1.35, 1.35],
+    textRot: [-0.55, 0, 0],
+  },
+  {
+    id: "south",
+    tag: "[ SOUTH // COV_02 ]",
+    title: "YUNNAN BORDER AESTHETIC EDUCATION",
+    epigraph: "Critique on center-periphery through communal art.",
+    href: "03-VolunteerteachingProject/",
+    texture: "03-VolunteerteachingProject/hero.JPG",
+    verts: [
+      -0.55, 0, -0.55,  0.55, 0, -0.55,  2.35, 3.1, -2.05,  -2.35, 3.1, -2.05,
+    ],
+    textPos: [0, 1.35, -1.35],
+    textRot: [0.55, 0, 0],
+  },
+  {
+    id: "west",
+    tag: "[ WEST // COV_03 ]",
+    title: "DUNHUANG CAVE 285 REPLICATION",
+    epigraph: "Spatial cosmology of medieval murals reconstructed.",
+    href: "01-DunhuangReplication/",
+    texture: "01-DunhuangReplication/hero.jpg",
+    verts: [
+      -0.55, 0, -0.55,  -0.55, 0, 0.55,  -2.35, 3.1, 2.05,  -2.35, 3.1, -2.05,
+    ],
+    textPos: [-1.35, 1.35, 0],
+    textRot: [0, 0, 0.55],
+  },
+  {
+    id: "east",
+    tag: "[ EAST // COV_04 ]",
+    title: 'THE "XUNYAO" FOLK RHYME ARCHIVING',
+    epigraph: "Sonic excavation of oral histories and field recordings.",
+    href: "04-FolkrhymeArchiving/",
+    texture: "04-FolkrhymeArchiving/hero.jpg",
+    verts: [
+      0.55, 0, -0.55,   0.55, 0, 0.55,   2.35, 3.1, 2.05,   2.35, 3.1, -2.05,
+    ],
+    textPos: [1.35, 1.35, 0],
+    textRot: [0, 0, -0.55],
+  },
+];
+
+/* -------------------------------------------------------------------------- */
+/*  纹理：排线 / 颗粒                                                         */
+/* -------------------------------------------------------------------------- */
+function createHatchTexture(angle = 45) {
+  const size = 256;
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const ctx = c.getContext("2d");
+  ctx.clearRect(0, 0, size, size);
+  ctx.strokeStyle = "rgba(40,40,40,0.55)";
+  ctx.lineWidth = 1;
+  const rad = (angle * Math.PI) / 180;
+  const step = 7;
+  for (let i = -size; i < size * 2; i += step) {
+    ctx.beginPath();
+    const x0 = i;
+    const y0 = 0;
+    const x1 = i + size * Math.cos(rad + Math.PI / 2);
+    const y1 = size;
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(4, 4);
+  return tex;
+}
+
+function createGrainTexture() {
+  const size = 512;
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  const ctx = c.getContext("2d");
+  const img = ctx.createImageData(size, size);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = 200 + Math.random() * 40;
+    img.data[i] = v;
+    img.data[i + 1] = v;
+    img.data[i + 2] = v;
+    img.data[i + 3] = 18;
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  坡面 Shader（手稿默认 + 暗房显影）                                          */
+/* -------------------------------------------------------------------------- */
+const slopeVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const slopeFragmentShader = `
+  uniform sampler2D uMap;
+  uniform float uFocus;
+  uniform float uFade;
+  uniform float uTransitionOpacity;
+  uniform float uTexAspect;
+  uniform float uPlaneAspect;
+  uniform float uZoom;
+  varying vec2 vUv;
+
+  void main() {
+    vec2 uv = vUv;
+
+    if (uTexAspect > uPlaneAspect) {
+      float s = uTexAspect / uPlaneAspect;
+      uv.x = (uv.x - 0.5) / s + 0.5;
+    } else if (uTexAspect < uPlaneAspect) {
+      float s = uPlaneAspect / uTexAspect;
+      uv.y = (uv.y - 0.5) / s + 0.5;
+    }
+
+    float zoom = mix(1.0, uZoom, uFocus);
+    uv = (uv - 0.5) / zoom + 0.5;
+    uv = clamp(uv, 0.0, 1.0);
+
+    vec4 photo = texture2D(uMap, uv);
+    float lum = dot(photo.rgb, vec3(0.2126, 0.7152, 0.0722));
+    float sat = mix(0.25, 0.65, uFocus);
+    vec3 rgb = mix(vec3(lum), photo.rgb, sat);
+    rgb = min(rgb * 1.1, vec3(1.0));
+    float alpha = mix(0.45, 1.0, uFocus) * (1.0 - uFade * 0.45) * uTransitionOpacity;
+    gl_FragColor = vec4(rgb, alpha);
+  }
+`;
+
+function createSlopeMaterial(map, hatch) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uMap: { value: map },
+      uHatch: { value: hatch },
+      uFocus: { value: 0 },
+      uFade: { value: 0 },
+      uTransitionOpacity: { value: 1 },
+      uTexAspect: { value: 1 },
+      uPlaneAspect: { value: 1 },
+      uZoom: { value: 1.04 },
+    },
+    vertexShader: slopeVertexShader,
+    fragmentShader: slopeFragmentShader,
+    transparent: true,
+    side: THREE.DoubleSide,
+    depthWrite: true,
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/*  几何：单坡面 + UV（坡面宽高比供 cover 铺满）                                */
+/* -------------------------------------------------------------------------- */
+function computePlaneAspect(verts) {
+  const v0 = new THREE.Vector3(verts[0], verts[1], verts[2]);
+  const v1 = new THREE.Vector3(verts[3], verts[4], verts[5]);
+  const v2 = new THREE.Vector3(verts[6], verts[7], verts[8]);
+  const v3 = new THREE.Vector3(verts[9], verts[10], verts[11]);
+  const bottomW = v0.distanceTo(v1);
+  const topW = v3.distanceTo(v2);
+  const leftH = v0.distanceTo(v3);
+  const rightH = v1.distanceTo(v2);
+  return (bottomW + topW) * 0.5 / ((leftH + rightH) * 0.5);
+}
+
+function createSlopeGeometry(verts) {
+  const geo = new THREE.BufferGeometry();
+  const positions = new Float32Array(verts);
+  const uvs = new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]);
+  const indices = [0, 1, 2, 0, 2, 3];
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  geo.userData.planeAspect = computePlaneAspect(verts);
+  return geo;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  3D 文字平面（贴合梯形坡面，宽度不超出坡面）                                 */
+/* -------------------------------------------------------------------------- */
+const _worldPos = new THREE.Vector3();
+const _toCam = new THREE.Vector3();
+const _worldN = new THREE.Vector3();
+const _normalMat = new THREE.Matrix3();
+const _pitCenter = new THREE.Vector3(0, 1.35, 0);
+const _towardPit = new THREE.Vector3();
+const _faceCenter = new THREE.Vector3();
+
+function getFaceFrame(verts) {
+  const v0 = new THREE.Vector3(verts[0], verts[1], verts[2]);
+  const v1 = new THREE.Vector3(verts[3], verts[4], verts[5]);
+  const v2 = new THREE.Vector3(verts[6], verts[7], verts[8]);
+  const v3 = new THREE.Vector3(verts[9], verts[10], verts[11]);
+  const bottomMid = v0.clone().add(v1).multiplyScalar(0.5);
+  const topMid = v3.clone().add(v2).multiplyScalar(0.5);
+  const up = topMid.clone().sub(bottomMid).normalize();
+  const right = v1.clone().sub(v0).add(v2.clone().sub(v3)).multiplyScalar(0.5).normalize();
+  const normal = new THREE.Vector3().crossVectors(right, up).normalize();
+
+  _faceCenter.copy(bottomMid).add(topMid).multiplyScalar(0.5);
+  _towardPit.copy(_pitCenter).sub(_faceCenter);
+  if (normal.dot(_towardPit) < 0) normal.negate();
+  if (normal.dot(_towardPit.clone().normalize()) < 0.85) {
+    const upLenSq = up.lengthSq();
+    normal.copy(_towardPit);
+    if (upLenSq > 1e-8) {
+      normal.addScaledVector(up, -normal.dot(up) / upLenSq);
+    }
+    normal.normalize();
+    if (normal.dot(_towardPit) < 0) normal.negate();
+  }
+
+  return {
+    bottomMid,
+    topMid,
+    up,
+    right,
+    normal,
+    bottomW: v0.distanceTo(v1),
+    topW: v3.distanceTo(v2),
+    faceHeight: bottomMid.distanceTo(topMid),
+  };
+}
+
+/** 梯形坡面文字相对默认尺寸 ×1.95（在 1.5 基础上再 ×1.3） */
+const FACE_TEXT_SCALE = 1.638;
+
+function computeFaceTextLayout(verts) {
+  const frame = getFaceFrame(verts);
+  const t = 2 / 3;
+  const widthAtT = frame.bottomW + (frame.topW - frame.bottomW) * t;
+  const planeW = widthAtT * 0.78 * FACE_TEXT_SCALE;
+  const planeH = frame.faceHeight * 0.34 * FACE_TEXT_SCALE;
+  const center = frame.bottomMid.clone().lerp(frame.topMid, t);
+  center.addScaledVector(frame.normal, 0.03);
+  const canvasW = 1024;
+  const canvasH = Math.max(280, Math.round(canvasW * (planeH / planeW)));
+  return {
+    ...frame,
+    center,
+    planeW,
+    planeH,
+    canvasW,
+    canvasH,
+    maxTextWidth: canvasW * 0.84,
+  };
+}
+
+function wrapWords(ctx, text, maxWidth) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = "";
+  words.forEach((word) => {
+    const test = line ? `${line} ${word}` : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+
+function createTextPanel(face, focus, layout) {
+  const { canvasW: W, canvasH: H, maxTextWidth, planeW, planeH } = layout;
+  const tagSize = Math.max(11, Math.round(planeH * 14));
+  const titleSize = Math.max(12, Math.round(planeH * 16));
+  const epSize = Math.max(10, Math.round(planeH * 12));
+  const titleLineH = titleSize * 1.38;
+  const epLineH = epSize * 1.38;
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = W;
+  canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = `rgba(255,255,255,${0.5 + focus * 0.5})`;
+
+  ctx.font = `400 ${tagSize}px "Lora", serif`;
+  const tagLines = wrapWords(ctx, face.tag, maxTextWidth);
+  let y = H * 0.2 + tagSize * 0.5;
+  tagLines.forEach((t) => {
+    ctx.fillText(t, W / 2, y);
+    y += tagSize * 1.35;
+  });
+
+  ctx.font = `700 ${titleSize}px "JetBrains Mono", monospace`;
+  const titleLines = wrapWords(ctx, face.title, maxTextWidth);
+  y += titleSize * 0.25;
+  titleLines.forEach((t) => {
+    ctx.fillText(t, W / 2, y);
+    y += titleLineH;
+  });
+
+  if (focus > 0.5) {
+    ctx.font = `italic 400 ${epSize}px "Lora", serif`;
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    const epLines = wrapWords(ctx, face.epigraph, maxTextWidth);
+    y += epSize * 0.35;
+    epLines.forEach((t) => {
+      ctx.fillText(t, W / 2, y);
+      y += epLineH;
+    });
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 4;
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(planeW, planeH), mat);
+  mesh.userData.isText = true;
+  mesh.userData.faceId = face.id;
+  mesh.renderOrder = 10;
+  return mesh;
+}
+
+function orientFaceText(text, layout) {
+  const n = layout.normal.clone();
+  const slopeUp = layout.up.clone();
+
+  monument.updateMatrixWorld();
+  _normalMat.getNormalMatrix(monument.matrixWorld);
+  _worldPos.copy(layout.center).applyMatrix4(monument.matrixWorld);
+  _toCam.copy(camera.position).sub(_worldPos).normalize();
+  _worldN.copy(n).applyMatrix3(_normalMat).normalize();
+
+  if (_worldN.dot(_toCam) < 0) n.negate();
+
+  const camUp = new THREE.Vector3(0, 1, 0);
+  let r = new THREE.Vector3().crossVectors(camUp, n);
+  if (r.lengthSq() < 1e-5) r.copy(layout.right);
+  r.normalize();
+
+  let u = new THREE.Vector3().crossVectors(n, r).normalize();
+  if (u.dot(slopeUp) < 0) {
+    u.negate();
+    r.negate();
+  }
+
+  r.crossVectors(u, n).normalize();
+  u.crossVectors(n, r).normalize();
+  n.crossVectors(r, u).normalize();
+
+  text.position.copy(layout.center);
+  text.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(r, u, n));
+  text.quaternion.multiply(
+    new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI)
+  );
+  text.scale.set(1, 1, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  线稿结构（Blueprint wires）                                               */
+/* -------------------------------------------------------------------------- */
+function buildBlueprint(monument) {
+  const g = new THREE.Group();
+  const mat = new THREE.LineBasicMaterial({
+    color: 0x111111,
+    transparent: true,
+    opacity: 0.55,
+  });
+  const b = 0.55;
+  const B = 2.35;
+  const D = 2.05;
+  const H = 3.1;
+
+  const edges = [
+    [-B, H, D, B, H, D],
+    [B, H, D, B, H, -D],
+    [B, H, -D, -B, H, -D],
+    [-B, H, -D, -B, H, D],
+    [-b, 0, b, b, 0, b],
+    [b, 0, b, b, 0, -b],
+    [b, 0, -b, -b, 0, -b],
+    [-b, 0, -b, -b, 0, b],
+  ];
+  const pts = [];
+  edges.forEach((e) => pts.push(new THREE.Vector3(e[0], e[1], e[2]), new THREE.Vector3(e[3], e[4], e[5])));
+  const geo = new THREE.BufferGeometry().setFromPoints(pts);
+  g.add(new THREE.LineSegments(geo, mat));
+
+  const rimH = 0.08 * 0.6;
+  const rim = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(1.05, rimH, 1.05)),
+    new THREE.LineBasicMaterial({ color: 0x111111, opacity: 0.7, transparent: true })
+  );
+  rim.position.y = rimH * 0.5;
+  g.add(rim);
+
+  monument.add(g);
+  return g;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  藻井深渊                                                                  */
+/* -------------------------------------------------------------------------- */
+function buildZaojing(monument) {
+  const group = new THREE.Group();
+  const wallMat = new THREE.MeshStandardMaterial({
+    color: 0xdcdcda,
+    roughness: 0.92,
+    metalness: 0.02,
+    map: createGrainTexture(),
+  });
+  const wellH = 0.18 * 0.6;
+  const well = new THREE.Mesh(new THREE.BoxGeometry(0.92, wellH, 0.92), wallMat);
+  well.position.y = -wellH * 0.5;
+  group.add(well);
+
+  const lipH = 0.02 * 0.6;
+  const lip = new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(1.02, lipH, 1.02)),
+    new THREE.LineBasicMaterial({ color: 0x111111 })
+  );
+  lip.position.y = lipH * 0.5;
+  group.add(lip);
+
+  const label = createTextPanel(
+    {
+      tag: "[ ZAOJING // CORE ]",
+      title: "WEN TIAN ARCHITECTURE",
+      epigraph: "",
+    },
+    1,
+    {
+      canvasW: 1024,
+      canvasH: 512,
+      maxTextWidth: 860,
+      planeW: 2.8,
+      planeH: 1.4,
+    }
+  );
+  label.scale.set(0.42, 0.22, 1);
+  label.rotation.x = -Math.PI / 2;
+  label.position.y = lipH * 0.5 + 0.04;
+  group.add(label);
+
+  monument.add(group);
+  return group;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  主场景                                                                    */
+/* -------------------------------------------------------------------------- */
+const host = document.getElementById("canvas-host");
+const scene = new THREE.Scene();
+scene.background = null;
+scene.fog = new THREE.Fog(0xc4c2be, 14, 28);
+
+const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 80);
+camera.position.set(0, 2.8, 9.5);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setClearColor(0x000000, 0);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+host.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.target.set(0, 1.4, 0);
+controls.minDistance = 4;
+controls.maxDistance = 22;
+controls.minPolarAngle = 0.06;
+controls.maxPolarAngle = Math.PI - 0.06;
+controls.enablePan = true;
+controls.panSpeed = 0.4;
+controls.rotateSpeed = 0.55;
+controls.zoomSpeed = 0.7;
+
+const _orbitOffset = new THREE.Vector3();
+const _orbitSpherical = new THREE.Spherical();
+_orbitOffset.subVectors(camera.position, controls.target);
+_orbitSpherical.setFromVector3(_orbitOffset);
+_orbitSpherical.phi = Math.max(
+  controls.minPolarAngle,
+  _orbitSpherical.phi - (20 * Math.PI) / 180
+);
+_orbitOffset.setFromSpherical(_orbitSpherical);
+camera.position.copy(controls.target).add(_orbitOffset);
+controls.update();
+
+/* 灯光 */
+scene.add(new THREE.AmbientLight(0xe8e6e2, 0.5));
+const key = new THREE.SpotLight(0xfff6ee, 28, 30, Math.PI / 5, 0.35, 1.2);
+key.position.set(4, 9, 5);
+key.target.position.set(0, 1.2, 0);
+scene.add(key);
+scene.add(key.target);
+
+const fill = new THREE.DirectionalLight(0xd8d6d2, 0.35);
+fill.position.set(-5, 3, -4);
+scene.add(fill);
+
+const rim = new THREE.DirectionalLight(0xffffff, 0.25);
+rim.position.set(0, 2, -8);
+scene.add(rim);
+
+/* 纪念碑组 */
+const monument = new THREE.Group();
+monument.position.y = 0.2;
+scene.add(monument);
+
+const hatchN = createHatchTexture(0);
+const hatchE = createHatchTexture(90);
+const loader = new THREE.TextureLoader();
+loader.setCrossOrigin("anonymous");
+
+const slopeMeshes = [];
+const textMeshes = [];
+let hoveredId = null;
+let touchingMonument = false;
+
+/* 整体朝向观者（须在文字定向之前设置） */
+monument.rotation.x = Math.PI - 0.08;
+monument.scale.set(0.8064, 0.48384, 0.8064);
+monument.position.y = 2.65;
+
+FACES.forEach((face) => {
+  const hatch = face.id === "west" || face.id === "east" ? hatchE : hatchN;
+  const geo = createSlopeGeometry(face.verts);
+  const mat = createSlopeMaterial(new THREE.Texture(), hatch);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.userData.faceId = face.id;
+  mesh.userData.href = face.href;
+  mesh.userData.face = face;
+  monument.add(mesh);
+  slopeMeshes.push(mesh);
+
+  loader.load(
+    face.texture,
+    (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      mat.uniforms.uMap.value = tex;
+
+      const img = tex.image;
+      if (img && img.width && img.height) {
+        mat.uniforms.uTexAspect.value = img.width / img.height;
+        mat.uniforms.uPlaneAspect.value = geo.userData.planeAspect || 1;
+      }
+
+      mat.needsUpdate = true;
+    },
+    undefined,
+    () => {
+      const fallback = new THREE.CanvasTexture(document.createElement("canvas"));
+      mat.uniforms.uMap.value = fallback;
+    }
+  );
+
+  const layout = computeFaceTextLayout(face.verts);
+  const text = createTextPanel(face, 0, layout);
+  orientFaceText(text, layout);
+  monument.add(text);
+  textMeshes.push({ mesh: text, face, geo, layout });
+});
+
+const zaojingGroup = buildZaojing(monument);
+const blueprintGroup = buildBlueprint(monument);
+
+const MONUMENT_SCREEN_HEIGHT = 0.25;
+const _fitBox = new THREE.Box3();
+const _fitCorner = new THREE.Vector3();
+const _fitProj = new THREE.Vector3();
+
+function getMonumentScreenHeightFraction() {
+  monument.updateMatrixWorld(true);
+  _fitBox.setFromObject(monument);
+  const { min, max } = _fitBox;
+  const corners = [
+    [min.x, min.y, min.z],
+    [min.x, min.y, max.z],
+    [min.x, max.y, min.z],
+    [min.x, max.y, max.z],
+    [max.x, min.y, min.z],
+    [max.x, min.y, max.z],
+    [max.x, max.y, min.z],
+    [max.x, max.y, max.z],
+  ];
+  let ndcMinY = 1;
+  let ndcMaxY = -1;
+  corners.forEach(([x, y, z]) => {
+    _fitCorner.set(x, y, z);
+    _fitCorner.project(camera);
+    ndcMinY = Math.min(ndcMinY, _fitCorner.y);
+    ndcMaxY = Math.max(ndcMaxY, _fitCorner.y);
+  });
+  return (ndcMaxY - ndcMinY) * 0.5;
+}
+
+function fitCameraToMonumentScreenHeight(targetFraction = MONUMENT_SCREEN_HEIGHT) {
+  const anchor = controls.target.clone();
+  for (let i = 0; i < 8; i++) {
+    const frac = getMonumentScreenHeightFraction();
+    if (Math.abs(frac - targetFraction) < 0.008) break;
+    const offset = camera.position.clone().sub(anchor);
+    offset.multiplyScalar(frac / targetFraction);
+    camera.position.copy(anchor).add(offset);
+    camera.updateProjectionMatrix();
+  }
+  controls.update();
+}
+
+fitCameraToMonumentScreenHeight();
+
+/* -------------------------------------------------------------------------- */
+/*  三幕过渡：idle → act1 → act2 → act3 → navigate                           */
+/* -------------------------------------------------------------------------- */
+const ACT1_DURATION = 0.5;
+const ACT2_DURATION = 1.0;
+const ACT3_DURATION = 0.5;
+/** 解构位移 = 纪念碑尺度 × 此比例（默认 5%） */
+const DECONSTRUCT_OFFSET_RATIO = 0.05;
+const MONUMENT_BOUNDS_SIZE = 5.0;
+const PULL_DISTANCE = 2.6;
+const ACT3_NDC_MARGIN = 0.96;
+
+const transitionClock = new THREE.Clock();
+let transitionState = "idle";
+let isTransitioning = false;
+let phaseStart = 0;
+let activeFaceId = null;
+let activeHref = null;
+let transitionGroup = null;
+let transitionBorder = null;
+let act2StartPos = new THREE.Vector3();
+let act2EndPos = new THREE.Vector3();
+let act2StartQuat = new THREE.Quaternion();
+let act2TargetQuat = new THREE.Quaternion();
+let act3StartScale = 1;
+let act3TargetScale = 1;
+const deconstructOrigins = new Map();
+
+const _ndc = new THREE.Vector3();
+const _box3 = new THREE.Box3();
+const _boxCorners = [
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+  new THREE.Vector3(),
+];
+
+function easeOutCubic(t) {
+  return 1 - (1 - t) ** 3;
+}
+
+function easeInCubic(t) {
+  return t ** 3;
+}
+
+function phaseProgress(duration) {
+  return Math.min(1, (transitionClock.getElapsedTime() - phaseStart) / duration);
+}
+
+function setMaterialOpacity(mat, opacity) {
+  if (!mat) return;
+  mat.transparent = true;
+  mat.opacity = opacity;
+  mat.needsUpdate = true;
+}
+
+function collectFadeMaterials(root) {
+  const mats = [];
+  root.traverse((obj) => {
+    if (obj.material) {
+      const list = Array.isArray(obj.material) ? obj.material : [obj.material];
+      list.forEach((m) => {
+        if (m.opacity !== undefined) mats.push(m);
+      });
+    }
+  });
+  return mats;
+}
+
+const blueprintFadeMats = collectFadeMaterials(blueprintGroup);
+const zaojingFadeMats = collectFadeMaterials(zaojingGroup);
+
+function getFaceOutwardAxis(faceVerts) {
+  return getFaceFrame(faceVerts).normal.clone();
+}
+
+function computeFaceScreenQuaternion(faceVerts) {
+  monument.updateMatrixWorld();
+  const frame = getFaceFrame(faceVerts);
+  let n = frame.normal.clone().transformDirection(monument.matrixWorld);
+  const center = frame.bottomMid
+    .clone()
+    .add(frame.topMid)
+    .multiplyScalar(0.5)
+    .applyMatrix4(monument.matrixWorld);
+  _toCam.copy(camera.position).sub(center).normalize();
+  if (n.dot(_toCam) < 0) n.negate();
+
+  const slopeUp = frame.up.clone().transformDirection(monument.matrixWorld).normalize();
+  const camUp = new THREE.Vector3(0, 1, 0);
+  let r = new THREE.Vector3().crossVectors(camUp, n);
+  if (r.lengthSq() < 1e-5) {
+    r.copy(frame.right.clone().transformDirection(monument.matrixWorld));
+  }
+  r.normalize();
+
+  let u = new THREE.Vector3().crossVectors(n, r).normalize();
+  if (u.dot(slopeUp) < 0) {
+    u.negate();
+    r.negate();
+  }
+  r.crossVectors(u, n).normalize();
+  u.crossVectors(n, r).normalize();
+  n.crossVectors(r, u).normalize();
+
+  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(r, u, n));
+}
+
+function storeDeconstructOrigins(faceId) {
+  deconstructOrigins.clear();
+  const dist = MONUMENT_BOUNDS_SIZE * DECONSTRUCT_OFFSET_RATIO;
+  const topOffset = new THREE.Vector3(0, dist, 0);
+
+  slopeMeshes.forEach((mesh) => {
+    if (mesh.userData.faceId === faceId) return;
+    const face = mesh.userData.face;
+    const axis = getFaceOutwardAxis(face.verts);
+    deconstructOrigins.set(mesh, {
+      pos: mesh.position.clone(),
+      axis,
+      dist,
+      opacity: 1,
+      type: "slope",
+    });
+  });
+
+  textMeshes.forEach(({ mesh, face }) => {
+    if (face.id === faceId) return;
+    deconstructOrigins.set(mesh, {
+      pos: mesh.position.clone(),
+      axis: getFaceOutwardAxis(face.verts),
+      dist,
+      opacity: mesh.material.opacity,
+      type: "text",
+    });
+  });
+
+  deconstructOrigins.set(blueprintGroup, {
+    pos: blueprintGroup.position.clone(),
+    axis: topOffset.clone().normalize(),
+    dist,
+    type: "group",
+    fadeMats: blueprintFadeMats.map((m) => ({ mat: m, opacity: m.opacity })),
+  });
+  deconstructOrigins.set(zaojingGroup, {
+    pos: zaojingGroup.position.clone(),
+    axis: topOffset.clone().normalize(),
+    dist,
+    type: "group",
+    fadeMats: zaojingFadeMats.map((m) => ({ mat: m, opacity: m.opacity })),
+  });
+}
+
+function updateAct1(t) {
+  const e = easeOutCubic(t);
+  const fade = 1 - e;
+
+  deconstructOrigins.forEach((orig, obj) => {
+    if (orig.type === "slope") {
+      obj.position.copy(orig.pos).addScaledVector(orig.axis, orig.dist * e);
+      obj.material.uniforms.uTransitionOpacity.value = fade;
+    } else if (orig.type === "text") {
+      obj.position.copy(orig.pos).addScaledVector(orig.axis, orig.dist * e);
+      setMaterialOpacity(obj.material, orig.opacity * fade);
+    } else if (orig.type === "group") {
+      obj.position.copy(orig.pos).add(orig.axis.clone().multiplyScalar(orig.dist * e));
+      orig.fadeMats.forEach(({ mat, opacity }) => setMaterialOpacity(mat, opacity * fade));
+    }
+  });
+}
+
+function reparentToTransitionGroup(mesh) {
+  mesh.updateMatrixWorld(true);
+  const worldPos = new THREE.Vector3();
+  const worldQuat = new THREE.Quaternion();
+  const worldScale = new THREE.Vector3();
+  mesh.matrixWorld.decompose(worldPos, worldQuat, worldScale);
+  scene.attach(mesh);
+  transitionGroup.add(mesh);
+  mesh.position.set(0, 0, 0);
+  mesh.quaternion.identity();
+  mesh.scale.set(1, 1, 1);
+  return { worldPos, worldQuat };
+}
+
+function beginAct2() {
+  const face = FACES.find((f) => f.id === activeFaceId);
+  const mesh = slopeMeshes.find((m) => m.userData.faceId === activeFaceId);
+  const textEntry = textMeshes.find((t) => t.face.id === activeFaceId);
+  if (!face || !mesh) return;
+
+  transitionGroup = new THREE.Group();
+  scene.add(transitionGroup);
+
+  const meshWorld = reparentToTransitionGroup(mesh);
+  transitionGroup.position.copy(meshWorld.worldPos);
+  transitionGroup.quaternion.copy(meshWorld.worldQuat);
+
+  if (textEntry) {
+    textEntry.mesh.updateMatrixWorld(true);
+    const tw = new THREE.Vector3();
+    const tq = new THREE.Quaternion();
+    const ts = new THREE.Vector3();
+    textEntry.mesh.matrixWorld.decompose(tw, tq, ts);
+    scene.attach(textEntry.mesh);
+    const localPos = transitionGroup.worldToLocal(tw.clone());
+    const localQuat = transitionGroup.quaternion.clone().invert().multiply(tq);
+    transitionGroup.add(textEntry.mesh);
+    textEntry.mesh.position.copy(localPos);
+    textEntry.mesh.quaternion.copy(localQuat);
+    textEntry.mesh.scale.copy(ts);
+  }
+
+  monument.updateMatrixWorld();
+  const pullAxis = getFaceOutwardAxis(face.verts).transformDirection(monument.matrixWorld).normalize();
+  _toCam.copy(camera.position).sub(transitionGroup.position).normalize();
+  const pullDir = pullAxis.dot(_toCam) < 0 ? pullAxis.clone().negate() : pullAxis;
+
+  act2StartPos.copy(transitionGroup.position);
+  act2EndPos.copy(act2StartPos).addScaledVector(pullDir, PULL_DISTANCE);
+  transitionGroup.getWorldQuaternion(act2StartQuat);
+  act2TargetQuat.copy(computeFaceScreenQuaternion(face.verts));
+}
+
+function computeFillViewportScale(group) {
+  group.updateMatrixWorld(true);
+  _box3.setFromObject(group);
+  if (_box3.isEmpty()) return 1;
+  _boxCorners[0].set(_box3.min.x, _box3.min.y, _box3.min.z);
+  _boxCorners[1].set(_box3.max.x, _box3.min.y, _box3.min.z);
+  _boxCorners[2].set(_box3.min.x, _box3.max.y, _box3.min.z);
+  _boxCorners[3].set(_box3.max.x, _box3.max.y, _box3.min.z);
+  _boxCorners[4].set(_box3.min.x, _box3.min.y, _box3.max.z);
+  _boxCorners[5].set(_box3.max.x, _box3.min.y, _box3.max.z);
+  _boxCorners[6].set(_box3.min.x, _box3.max.y, _box3.max.z);
+  _boxCorners[7].set(_box3.max.x, _box3.max.y, _box3.max.z);
+
+  let maxNdc = 0;
+  _boxCorners.forEach((c) => {
+    _ndc.copy(c).project(camera);
+    maxNdc = Math.max(maxNdc, Math.abs(_ndc.x), Math.abs(_ndc.y));
+  });
+  if (maxNdc < 1e-4) return 1;
+  return ACT3_NDC_MARGIN / maxNdc;
+}
+
+function beginAct3() {
+  const mesh = transitionGroup.children.find(
+    (c) => c.userData?.faceId === activeFaceId && !c.userData.isText
+  );
+  if (mesh?.geometry && !transitionBorder) {
+    transitionBorder = new THREE.LineSegments(
+      new THREE.EdgesGeometry(mesh.geometry),
+      new THREE.LineBasicMaterial({ color: 0x111111 })
+    );
+    mesh.add(transitionBorder);
+  }
+  transitionGroup.updateMatrixWorld(true);
+  act3StartScale = transitionGroup.scale.x;
+  act3TargetScale = act3StartScale * computeFillViewportScale(transitionGroup);
+}
+
+function navigateToProject(href) {
+  try {
+    sessionStorage.setItem("monument-from-transition", "1");
+  } catch {
+    /* ignore */
+  }
+  const go = () => {
+    window.location.href = href;
+  };
+  if (document.startViewTransition) {
+    document.startViewTransition(go);
+  } else {
+    go();
+  }
+}
+
+function beginTransition(faceId, href) {
+  if (isTransitioning) return;
+  isTransitioning = true;
+  transitionState = "act1";
+  activeFaceId = faceId;
+  activeHref = href;
+  phaseStart = transitionClock.getElapsedTime();
+  controls.enabled = false;
+  document.body.style.cursor = "default";
+  hoveredId = faceId;
+  touchingMonument = false;
+
+  slopeMeshes.forEach((m) => {
+    const active = m.userData.faceId === faceId;
+    m.material.uniforms.uFocus.value = active ? 1 : 0;
+    m.material.uniforms.uFade.value = 0;
+    m.material.uniforms.uTransitionOpacity.value = 1;
+  });
+
+  storeDeconstructOrigins(faceId);
+}
+
+function updateTransition() {
+  if (!isTransitioning) return;
+
+  if (transitionState === "act1") {
+    const t = phaseProgress(ACT1_DURATION);
+    updateAct1(t);
+    if (t >= 1) {
+      transitionState = "act2";
+      phaseStart = transitionClock.getElapsedTime();
+      beginAct2();
+    }
+    return;
+  }
+
+  if (transitionState === "act2") {
+    const t = easeOutCubic(phaseProgress(ACT2_DURATION));
+    transitionGroup.position.lerpVectors(act2StartPos, act2EndPos, t);
+    transitionGroup.quaternion.copy(act2StartQuat).slerp(act2TargetQuat, t);
+    if (phaseProgress(ACT2_DURATION) >= 1) {
+      transitionState = "act3";
+      phaseStart = transitionClock.getElapsedTime();
+      beginAct3();
+    }
+    return;
+  }
+
+  if (transitionState === "act3") {
+    const t = easeInCubic(phaseProgress(ACT3_DURATION));
+    const s = THREE.MathUtils.lerp(act3StartScale, act3TargetScale, t);
+    transitionGroup.scale.setScalar(s);
+    if (phaseProgress(ACT3_DURATION) >= 1) {
+      transitionState = "navigate";
+      navigateToProject(activeHref);
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  交互：Raycaster + 显影                                                    */
+/* -------------------------------------------------------------------------- */
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+function setFaceFocus(id, focus, fade) {
+  slopeMeshes.forEach((m) => {
+    const isTarget = m.userData.faceId === id;
+    const f = isTarget ? focus : 0;
+    const fd = id && !isTarget ? fade : 0;
+    m.material.uniforms.uFocus.value = THREE.MathUtils.lerp(
+      m.material.uniforms.uFocus.value,
+      f,
+      0.12
+    );
+    m.material.uniforms.uFade.value = THREE.MathUtils.lerp(
+      m.material.uniforms.uFade.value,
+      fd,
+      0.12
+    );
+  });
+
+  textMeshes.forEach(({ mesh, face, layout }) => {
+    const foc = face.id === id ? focus : 0;
+    if (Math.abs(foc - (mesh.userData.lastFocus || 0)) > 0.15) {
+      mesh.userData.lastFocus = foc;
+      const parent = mesh.parent;
+      parent.remove(mesh);
+      const neu = createTextPanel(face, foc, layout);
+      orientFaceText(neu, layout);
+      parent.add(neu);
+      const idx = textMeshes.findIndex((t) => t.mesh === mesh);
+      textMeshes[idx].mesh = neu;
+    }
+  });
+}
+
+function resetInteractionState() {
+  hoveredId = null;
+  touchingMonument = false;
+  document.body.style.cursor = "default";
+  setFaceFocus(null, 0, 0);
+}
+
+function updateHoverFromPointer(e) {
+  if (isTransitioning) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(slopeMeshes, false);
+  touchingMonument = hits.length > 0;
+
+  if (hits.length) {
+    const id = hits[0].object.userData.faceId;
+    if (hoveredId !== id) {
+      hoveredId = id;
+      document.body.style.cursor = "pointer";
+    }
+    setFaceFocus(id, 1, 1);
+  } else {
+    hoveredId = null;
+    document.body.style.cursor = "default";
+    setFaceFocus(null, 0, 0.6);
+  }
+}
+
+host.addEventListener("pointerleave", () => {
+  resetInteractionState();
+});
+
+host.addEventListener("pointerenter", updateHoverFromPointer);
+host.addEventListener("pointermove", updateHoverFromPointer);
+
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) {
+    resetInteractionState();
+  }
+});
+
+host.addEventListener("click", () => {
+  if (isTransitioning || !hoveredId) return;
+  const m = slopeMeshes.find((s) => s.userData.faceId === hoveredId);
+  if (m?.userData.href) beginTransition(hoveredId, m.userData.href);
+});
+
+/* -------------------------------------------------------------------------- */
+/*  动画循环                                                                  */
+/* -------------------------------------------------------------------------- */
+function animate() {
+  requestAnimationFrame(animate);
+  if (isTransitioning) {
+    updateTransition();
+  } else {
+    controls.update();
+    const idleSpeed = 0.0005;
+    const hoverSpeed = 0.00004;
+    monument.rotation.y += touchingMonument ? hoverSpeed : idleSpeed;
+    textMeshes.forEach(({ mesh, layout }) => orientFaceText(mesh, layout));
+  }
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  fitCameraToMonumentScreenHeight();
+});

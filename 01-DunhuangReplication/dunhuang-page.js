@@ -1,0 +1,76 @@
+/**
+ * Dunhuang 01 — loads text-content.txt into layout slots (Figma order).
+ */
+(async function () {
+  const body = document.body;
+  const textUrl = body.dataset.text;
+  const nextHref = body.dataset.next;
+  const nextLink = document.getElementById("project-next");
+  if (nextLink && nextHref) nextLink.href = nextHref;
+
+  const slots = {
+    intro: document.getElementById("dh-intro"),
+    mid1: document.getElementById("dh-mid1"),
+    mid2: document.getElementById("dh-mid2"),
+    split: document.getElementById("dh-split-text"),
+    exhiLead: document.getElementById("dh-exhi-lead"),
+    final: document.getElementById("dh-final"),
+  };
+
+  if (!textUrl || !slots.intro) return;
+
+  const render = (el, paragraphs) => {
+    if (!el) return;
+    el.innerHTML = paragraphs.map((t) => `<p>${escapeHtml(t)}</p>`).join("");
+  };
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function parseParagraphs(raw) {
+    const lines = raw.replace(/\r\n/g, "\n").split("\n");
+    const paragraphs = [];
+    let buffer = [];
+
+    const flush = () => {
+      if (buffer.length) {
+        paragraphs.push(buffer.join(" "));
+        buffer = [];
+      }
+    };
+
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        flush();
+        return;
+      }
+      if (/^visual replication of$/i.test(trimmed)) return;
+      if (/^dunhuang cave 285 ceiling$/i.test(trimmed)) return;
+      if (/click to see my next project/i.test(trimmed)) return;
+      buffer.push(trimmed);
+    });
+    flush();
+    return paragraphs;
+  }
+
+  try {
+    const res = await fetch(textUrl);
+    if (!res.ok) throw new Error(res.statusText);
+    const paragraphs = parseParagraphs(await res.text());
+
+    render(slots.intro, paragraphs.slice(0, 1));
+    render(slots.mid1, paragraphs.slice(1, 2));
+    render(slots.mid2, paragraphs.slice(2, 3));
+    render(slots.split, paragraphs.slice(4, 5));
+    render(slots.exhiLead, paragraphs.slice(3, 4));
+    render(slots.final, paragraphs.slice(5));
+  } catch {
+    slots.intro.innerHTML = "<p>Content could not be loaded.</p>";
+  }
+})();

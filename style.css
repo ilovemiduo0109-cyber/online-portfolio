@@ -1,0 +1,518 @@
+/* ==========================================================================
+
+   3D Monument — UI shell only (scene in WebGL)
+
+   ========================================================================== */
+
+
+
+:root {
+
+  --stone-deep: #b0aeaa;
+
+  --stone-mid: #c4c2be;
+
+  --stone: #d8d6d2;
+
+  --stone-light: #f8f6f2;
+
+  --ink: rgba(30, 30, 30, 0.55);
+
+}
+
+
+
+* {
+
+  box-sizing: border-box;
+
+  margin: 0;
+
+  padding: 0;
+
+}
+
+
+
+html,
+
+body,
+
+.wrapper {
+
+  width: 100%;
+
+  height: 100%;
+
+  overflow: hidden;
+
+}
+
+
+
+.wrapper {
+
+  background-color: var(--stone-deep);
+
+  position: relative;
+
+}
+
+
+
+.bg-atmosphere {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 0;
+
+  pointer-events: none;
+
+  background:
+
+    radial-gradient(
+
+      ellipse 156% 124% at 50% 38%,
+
+      var(--stone-light) 0%,
+
+      #e8e6e2 28%,
+
+      var(--stone) 48%,
+
+      var(--stone-mid) 72%,
+
+      var(--stone-deep) 100%
+
+    ),
+
+    radial-gradient(
+
+      ellipse 240% 180% at 50% 100%,
+
+      #a8a6a2 0%,
+
+      transparent 58%
+
+    ),
+
+    linear-gradient(
+
+      180deg,
+
+      var(--stone-deep) 0%,
+
+      #b4b2ae 18%,
+
+      var(--stone-mid) 42%,
+
+      var(--stone) 62%,
+
+      #eceae6 82%,
+
+      var(--stone-light) 100%
+
+    );
+
+}
+
+
+
+#bg-screensaver {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  pointer-events: none;
+
+  display: block;
+
+  mix-blend-mode: soft-light;
+
+}
+
+
+
+.svg-defs {
+
+  position: absolute;
+
+  width: 0;
+
+  height: 0;
+
+  overflow: hidden;
+
+}
+
+
+
+.grain-overlay {
+
+  position: fixed;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  z-index: 0;
+
+  background-color: var(--stone);
+
+}
+
+
+
+.grain-coarse {
+
+  opacity: 0.78;
+
+  filter: url(#sandstone-grain-coarse);
+
+  mix-blend-mode: soft-light;
+
+}
+
+
+
+.grain-fine {
+
+  opacity: 0.62;
+
+  filter: url(#sandstone-grain-fine);
+
+  mix-blend-mode: multiply;
+
+}
+
+
+
+#canvas-host {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1;
+
+  background: transparent;
+
+}
+
+
+
+#canvas-host canvas {
+
+  display: block;
+
+  width: 100%;
+
+  height: 100%;
+
+  outline: none;
+
+}
+
+
+
+.ui-hint {
+
+  position: fixed;
+
+  bottom: 2.6rem;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  font-family: "JetBrains Mono", monospace;
+
+  font-size: 0.58rem;
+
+  letter-spacing: 0.22em;
+
+  text-transform: uppercase;
+
+  color: var(--ink);
+
+  z-index: 3;
+
+  pointer-events: none;
+
+  opacity: 0.55;
+
+}
+
+
+
+.site-footer {
+
+  position: fixed;
+
+  bottom: 0.85rem;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  font-family: "JetBrains Mono", monospace;
+
+  font-size: 0.58rem;
+
+  letter-spacing: 0.28em;
+
+  text-transform: uppercase;
+
+  color: var(--ink);
+
+  z-index: 5;
+
+  pointer-events: none;
+
+}
+
+
+
+#meteor-layer {
+
+  position: fixed;
+
+  inset: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  z-index: 4;
+
+  pointer-events: none;
+
+}
+
+
+
+/* ==========================================================================
+
+   Project subpages (scrollable article)
+
+   ========================================================================== */
+
+
+
+body.project-page {
+
+  overflow-x: hidden;
+
+  overflow-y: auto;
+
+  min-height: 100%;
+
+}
+
+
+
+.project-page #meteor-layer {
+
+  position: fixed;
+
+  inset: 0;
+
+  width: 100%;
+
+  height: 100%;
+
+  z-index: 1;
+
+  pointer-events: none;
+
+}
+
+
+
+.project-page .bg-atmosphere,
+
+.project-page .grain-overlay {
+
+  position: fixed;
+
+}
+
+
+
+.project-shell {
+
+  position: relative;
+
+  z-index: 2;
+
+  max-width: 52rem;
+
+  margin: 0 auto;
+
+  padding: 3rem 1.5rem 5rem;
+
+}
+
+
+
+.project-back {
+
+  display: inline-block;
+
+  margin-bottom: 2rem;
+
+  font-family: "JetBrains Mono", monospace;
+
+  font-size: 0.58rem;
+
+  letter-spacing: 0.22em;
+
+  text-transform: uppercase;
+
+  color: var(--ink);
+
+  text-decoration: none;
+
+}
+
+
+
+.project-back:hover {
+
+  color: rgba(30, 30, 30, 0.85);
+
+}
+
+
+
+.project-tag {
+
+  font-family: "JetBrains Mono", monospace;
+
+  font-size: 0.58rem;
+
+  letter-spacing: 0.22em;
+
+  text-transform: uppercase;
+
+  color: var(--ink);
+
+  margin-bottom: 0.75rem;
+
+}
+
+
+
+.project-title {
+
+  font-family: "JetBrains Mono", monospace;
+
+  font-weight: 700;
+
+  font-size: clamp(1rem, 2.4vw, 1.35rem);
+
+  letter-spacing: 0.06em;
+
+  line-height: 1.45;
+
+  color: rgba(30, 30, 30, 0.82);
+
+  margin-bottom: 1.5rem;
+
+}
+
+
+
+.project-hero {
+
+  width: 100%;
+
+  height: auto;
+
+  display: block;
+
+  margin-bottom: 2rem;
+
+  box-shadow: 0 12px 40px rgba(30, 30, 30, 0.12);
+
+}
+
+
+
+.project-body {
+
+  font-family: "Lora", serif;
+
+  font-size: 1.05rem;
+
+  line-height: 1.75;
+
+  color: rgba(30, 30, 30, 0.78);
+
+}
+
+
+
+.project-body p {
+
+  margin-bottom: 1.25rem;
+
+}
+
+
+
+.project-next {
+
+  display: inline-block;
+
+  margin-top: 2rem;
+
+  font-family: "JetBrains Mono", monospace;
+
+  font-size: 0.62rem;
+
+  letter-spacing: 0.18em;
+
+  text-transform: uppercase;
+
+  color: rgba(30, 30, 30, 0.7);
+
+  text-decoration: none;
+
+  border-bottom: 1px solid rgba(30, 30, 30, 0.25);
+
+}
+
+
+
+.project-next:hover {
+
+  color: rgba(30, 30, 30, 0.95);
+
+}
+
+
+
+/* 首页 → 子页 View Transition（减少闪屏） */
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  background-color: var(--stone-deep);
+}
+
+
+

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1:1 Scale Replication: The Beijing Siheyuan Gatehouse — Wen Tian Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Lora:ital,wght@0,400;1,400&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="project.css" />
+</head>
+<body
+  class="wrapper project-page gatehouse-page"
+  data-text="text-content.txt"
+  data-next="../03-VolunteerteachingProject/"
+>
+  <svg class="svg-defs" aria-hidden="true">
+    <filter id="sandstone-grain-coarse" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.34" numOctaves="6" seed="8" stitchTiles="stitch" result="coarse">
+        <animate attributeName="seed" values="8;14;8" dur="12s" repeatCount="indefinite" />
+      </feTurbulence>
+      <feColorMatrix in="coarse" type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.38" intercept="0.06" />
+      </feComponentTransfer>
+    </filter>
+    <filter id="sandstone-grain-fine" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="3" seed="24" stitchTiles="stitch" result="fine">
+        <animate attributeName="seed" values="24;31;24" dur="7s" repeatCount="indefinite" />
+      </feTurbulence>
+      <feColorMatrix in="fine" type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.22" intercept="0.02" />
+      </feComponentTransfer>
+    </filter>
+  </svg>
+  <div class="bg-atmosphere" aria-hidden="true"></div>
+  <canvas id="bg-screensaver" aria-hidden="true"></canvas>
+  <div class="grain-overlay grain-coarse" aria-hidden="true"></div>
+  <div class="grain-overlay grain-fine" aria-hidden="true"></div>
+  <canvas id="meteor-layer" data-variant="subpage" aria-hidden="true"></canvas>
+
+  <article class="gh-page">
+    <a class="gh-back" href="../">← Monument</a>
+
+    <header class="gh-header">
+      <h1 class="gh-title">
+        <span class="gh-title-line">1:1 Scale Replication:</span>
+        <span class="gh-title-line">The Beijing Siheyuan Gatehouse</span>
+      </h1>
+    </header>
+
+    <figure class="gh-lead">
+      <img
+        src="exhi-preview.jpg"
+        alt="Siheyuan gatehouse replication in warm exhibition light"
+        width="900"
+        height="1200"
+        loading="eager"
+      />
+    </figure>
+
+    <div id="gh-intro" class="gh-prose" aria-live="polite"></div>
+
+    <div class="gh-process" role="group" aria-label="Replication process">
+      <figure class="gh-process__item">
+        <img src="process1.jpg" alt="Wooden framework under construction" width="320" height="240" loading="lazy" />
+      </figure>
+      <figure class="gh-process__item">
+        <img src="process2.jpg" alt="Door panel surface work in the workshop" width="320" height="240" loading="lazy" />
+      </figure>
+      <figure class="gh-process__item">
+        <img src="process3.jpg" alt="Foam-block structure assembly" width="320" height="240" loading="lazy" />
+      </figure>
+      <figure class="gh-process__item">
+        <img src="process4.jpg" alt="Panel finishing on the workshop floor" width="320" height="240" loading="lazy" />
+      </figure>
+    </div>
+
+    <div class="gh-stagger" role="group" aria-label="Door and joinery details">
+      <figure class="gh-stagger__item gh-stagger__item--left">
+        <img src="detail-door3.jpg" alt="Weathered red lacquer wood surface" width="400" height="560" loading="lazy" />
+      </figure>
+      <figure class="gh-stagger__item gh-stagger__item--wide">
+        <img src="detail-1.jpg" alt="Wooden joinery and masonry at the gate base" width="400" height="280" loading="lazy" />
+      </figure>
+      <figure class="gh-stagger__item gh-stagger__item--tall">
+        <img src="detail-door.png" alt="Pair of weathered Qing-era wooden doors" width="400" height="560" loading="lazy" />
+      </figure>
+    </div>
+
+    <div id="gh-mid1" class="gh-prose"></div>
+
+    <div class="gh-materials" role="group" aria-label="Material aging studies">
+      <figure class="gh-materials__item">
+        <img src="wood-process1.jpg" alt="Foam aging study with blue plaster texture" width="360" height="480" loading="lazy" />
+      </figure>
+      <figure class="gh-materials__item">
+        <img src="wood-process.jpg" alt="Pink primer and wood grain replication sample" width="360" height="480" loading="lazy" />
+      </figure>
+    </div>
+
+    <div id="gh-mid2" class="gh-prose gh-prose--before-final"></div>
+
+    <figure class="gh-hero">
+      <img
+        src="hero.jpg"
+        alt="1:1 scale gatehouse model in the workshop with scaffolding"
+        width="1200"
+        height="675"
+        loading="lazy"
+      />
+    </figure>
+
+    <div id="gh-final" class="gh-prose"></div>
+
+    <footer class="gh-footer">
+      <a id="project-next" class="gh-next" href="../03-VolunteerteachingProject/">click to view the next project →</a>
+    </footer>
+  </article>
+
+  <script src="../bg-screensaver.js"></script>
+  <script src="../meteor.js"></script>
+  <script src="gatehouse-page.js"></script>
+</body>
+</html>
