@@ -120,82 +120,6 @@ body,
 
 
 
-#bg-screensaver {
-
-  position: fixed;
-
-  inset: 0;
-
-  z-index: 0;
-
-  width: 100%;
-
-  height: 100%;
-
-  pointer-events: none;
-
-  display: block;
-
-  mix-blend-mode: soft-light;
-
-}
-
-
-
-.svg-defs {
-
-  position: absolute;
-
-  width: 0;
-
-  height: 0;
-
-  overflow: hidden;
-
-}
-
-
-
-.grain-overlay {
-
-  position: fixed;
-
-  inset: 0;
-
-  pointer-events: none;
-
-  z-index: 0;
-
-  background-color: var(--stone);
-
-}
-
-
-
-.grain-coarse {
-
-  opacity: 0.78;
-
-  filter: url(#sandstone-grain-coarse);
-
-  mix-blend-mode: soft-light;
-
-}
-
-
-
-.grain-fine {
-
-  opacity: 0.62;
-
-  filter: url(#sandstone-grain-fine);
-
-  mix-blend-mode: multiply;
-
-}
-
-
-
 #canvas-host {
 
   position: fixed;
@@ -338,9 +262,7 @@ body.project-page {
 
 
 
-.project-page .bg-atmosphere,
-
-.project-page .grain-overlay {
+.project-page .bg-atmosphere {
 
   position: fixed;
 
