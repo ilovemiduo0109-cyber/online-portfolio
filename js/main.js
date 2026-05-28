@@ -6,6 +6,8 @@
 
  */
 
+import * as THREE from "three";
+
 import { setupScene } from "./scene/setup-scene.js";
 
 import { createMonumentContext } from "./context.js";
@@ -42,9 +44,21 @@ setupInteraction(ctx, transition);
 
 
 
+const clock = new THREE.Clock();
+
+const IDLE_ROTATION_SPEED = 0.03;
+
+const HOVER_ROTATION_SPEED = 0.0024;
+
+
+
 function animate() {
 
   requestAnimationFrame(animate);
+
+  const delta = Math.min(clock.getDelta(), 0.1);
+
+
 
   if (transition.isTransitioning) {
 
@@ -54,11 +68,13 @@ function animate() {
 
     ctx.controls.update();
 
-    const idleSpeed = 0.0005;
+    const speed = ctx.interaction.touchingMonument
 
-    const hoverSpeed = 0.00004;
+      ? HOVER_ROTATION_SPEED
 
-    ctx.monument.rotation.y += ctx.interaction.touchingMonument ? hoverSpeed : idleSpeed;
+      : IDLE_ROTATION_SPEED;
+
+    ctx.monument.rotation.y += speed * delta;
 
   }
 
