@@ -1,9 +1,11 @@
-/* Folk Rhyme 04 — layout matched to reference mockup */
+/* Folk Rhyme 04 — editorial layout refinement */
 
 :root {
   --fr-gap: 2.75rem;
-  --fr-gap-wide: 4.75rem;
-  --fr-content: min(34rem, 86vw);
+  --fr-gap-tight: 2rem;
+  --fr-gap-section: 5.25rem;
+  --fr-gap-media: 0.75rem;
+  --fr-content: min(36rem, 88vw);
 }
 
 .folk-page {
@@ -53,17 +55,17 @@
   display: block;
 }
 
-/* Hero — wide landscape */
+/* Hero — wide editorial crop */
 .fr-hero {
   width: 100%;
-  margin: 0 auto var(--fr-gap-wide);
+  margin: 0 auto var(--fr-gap-tight);
 }
 
 .fr-hero img {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 3 / 2;
   object-fit: cover;
 }
 
@@ -81,7 +83,7 @@
 }
 
 .fr-prose p {
-  margin: 0 0 1.35rem;
+  margin: 0 0 1.5rem;
 }
 
 .fr-prose p:last-child {
@@ -95,20 +97,20 @@
 }
 
 #fr-intro {
-  margin-bottom: var(--fr-gap-wide);
+  margin-bottom: var(--fr-gap-section);
 }
 
 #fr-mid1 {
-  margin-bottom: var(--fr-gap-wide);
+  margin-bottom: var(--fr-gap-section);
 }
 
-/* Gallery — three across */
+/* Gallery — three square crops */
 .fr-gallery {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.45rem;
+  gap: var(--fr-gap-media);
   width: 100%;
-  margin: 0 auto var(--fr-gap-wide);
+  margin: 0 auto var(--fr-gap-section);
 }
 
 .fr-gallery__item {
@@ -119,7 +121,7 @@
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
 }
 
@@ -127,10 +129,10 @@
 .fr-split {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  gap: 2rem 2.25rem;
-  align-items: start;
+  gap: 2.25rem 2.5rem;
+  align-items: center;
   width: 100%;
-  margin: 0 auto var(--fr-gap-wide);
+  margin: 0 auto var(--fr-gap-section);
 }
 
 .fr-split__media {
@@ -154,9 +156,9 @@
 .fr-performance {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.45rem;
+  gap: var(--fr-gap-media);
   width: 100%;
-  margin: 0 auto var(--fr-gap);
+  margin: 0 auto 1.15rem;
 }
 
 .fr-performance__item {
@@ -173,24 +175,25 @@
 
 .fr-caption {
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.56rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   text-align: center;
   color: rgba(30, 30, 30, 0.72);
-  margin: 0 auto var(--fr-gap-wide);
+  margin: 0 auto 0.85rem;
 }
 
 .fr-youtube {
   text-align: center;
-  margin: 0 auto var(--fr-gap-wide);
+  margin: var(--fr-gap-section) auto var(--fr-gap);
+  padding: 0.35rem 0;
 }
 
 .fr-youtube__link {
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
   color: rgba(30, 30, 30, 0.72);
   text-decoration: none;
   border-bottom: 1px solid rgba(30, 30, 30, 0.22);
@@ -222,6 +225,11 @@
 }
 
 @media (max-width: 720px) {
+  :root {
+    --fr-gap-section: 4rem;
+    --fr-gap-media: 0.7rem;
+  }
+
   .fr-gallery {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -229,6 +237,7 @@
   .fr-split {
     grid-template-columns: 1fr;
     gap: 2rem;
+    align-items: start;
   }
 
   .fr-split__media {
@@ -242,6 +251,10 @@
     margin-left: auto;
     margin-right: auto;
   }
+
+  .fr-youtube {
+    margin-top: 3.5rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -249,13 +262,26 @@
     padding: 2rem 1.15rem 4.5rem;
   }
 
+  :root {
+    --fr-gap-tight: 1.75rem;
+    --fr-gap-section: 3.25rem;
+    --fr-gap-media: 0.65rem;
+  }
+
   .fr-gallery,
   .fr-performance {
     grid-template-columns: 1fr;
-    gap: 0.4rem;
   }
 
-  :root {
-    --fr-gap-wide: 3.5rem;
+  .fr-performance {
+    margin-bottom: 1rem;
+  }
+
+  .fr-caption {
+    margin-bottom: 0.75rem;
+  }
+
+  .fr-youtube {
+    margin-top: 3rem;
   }
 }
