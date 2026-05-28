@@ -163,15 +163,12 @@
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
+  max-width: 100%;
 }
 
 .yt-poem {
-  font-family: "JetBrains Mono", monospace;
-  font-weight: 500;
-  font-size: clamp(0.62rem, 0.85vw, 0.76rem);
-  line-height: 1.58;
+  font-size: clamp(0.58rem, 0.8vw, 0.72rem);
+  line-height: 1.55;
   color: rgba(30, 30, 30, 0.76);
   text-align: center;
   margin: 0;
@@ -190,6 +187,7 @@
 
 .yt-poem__body {
   margin: 0;
+  font-family: "Lora", serif;
   font-style: normal;
 }
 
