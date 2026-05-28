@@ -46,9 +46,9 @@ setupInteraction(ctx, transition);
 
 const clock = new THREE.Clock();
 
-const IDLE_ROTATION_SPEED = 0.03;
+const IDLE_ROTATION_SPEED = 0.072;
 
-const HOVER_ROTATION_SPEED = 0.0024;
+const HOVER_ROTATION_SPEED = 0.0058;
 
 
 
