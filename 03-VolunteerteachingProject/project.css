@@ -54,6 +54,15 @@
   display: block;
 }
 
+.yt-year {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 400;
+  font-size: clamp(0.78rem, 1.75vw, 0.92rem);
+  letter-spacing: 0.14em;
+  color: rgba(30, 30, 30, 0.52);
+  margin: 0.6rem 0 0;
+}
+
 /* Hero pair — full content width, landscape crops */
 .yt-hero-pair {
   display: grid;
