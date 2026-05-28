@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-const MONUMENT_SCREEN_HEIGHT = 0.25;
+const MONUMENT_SCREEN_HEIGHT = 0.5;
 const _fitBox = new THREE.Box3();
 const _fitCorner = new THREE.Vector3();
 
