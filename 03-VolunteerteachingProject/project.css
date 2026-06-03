@@ -63,13 +63,32 @@
   margin: 0.6rem 0 0;
 }
 
+/* Stacks (layout B) */
+.yt-page .project-stack {
+  margin-bottom: var(--yt-gap-wide);
+}
+
+.yt-page .project-stack--database {
+  margin-bottom: var(--yt-gap-wide);
+}
+
+.yt-page .project-stack > .yt-hero-pair,
+.yt-page .project-stack > .yt-database {
+  width: 100%;
+  max-width: 100%;
+}
+
+.yt-page .project-stack .project-prose {
+  text-align: left;
+}
+
 /* Hero pair — full content width, landscape crops */
 .yt-hero-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.45rem;
   width: 100%;
-  margin: 0 auto var(--yt-gap-wide);
+  margin: 0;
 }
 
 .yt-hero-pair__item {
@@ -120,14 +139,6 @@
   line-height: 1.78;
 }
 
-#yt-intro {
-  margin-bottom: var(--yt-gap-wide);
-}
-
-#yt-mid1 {
-  margin-bottom: var(--yt-gap-wide);
-}
-
 #yt-mid2 {
   margin-bottom: var(--yt-gap-wide);
 }
@@ -139,7 +150,7 @@
 /* Database screenshot — spans full column */
 .yt-database {
   width: 100%;
-  margin: 0 auto var(--yt-gap);
+  margin: 0;
 }
 
 .yt-database img {
@@ -315,6 +326,12 @@
   .yt-hero-pair {
     grid-template-columns: 1fr;
     gap: 0.4rem;
+  }
+
+  .yt-page .project-stack--hero-pair,
+  .yt-page .project-stack--database {
+    width: 100%;
+    max-width: 100%;
   }
 
   :root {

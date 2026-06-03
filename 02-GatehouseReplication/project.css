@@ -66,10 +66,45 @@
   margin: 0.6rem 0 0;
 }
 
+/* Stacks (layout B) */
+.gh-page .project-stack {
+  margin-bottom: var(--gh-gap);
+}
+
+.gh-page .project-stack--full {
+  margin-bottom: var(--gh-gap);
+}
+
+.gh-page .project-stack--lead {
+  max-width: var(--gh-lead-w);
+}
+
+.gh-page .project-stack--stagger {
+  max-width: var(--gh-stagger-w);
+}
+
+.gh-page .project-stack--materials {
+  max-width: var(--gh-materials-w);
+}
+
+.gh-page .project-stack > .gh-stagger,
+.gh-page .project-stack > .gh-materials {
+  width: 100%;
+  max-width: 100%;
+}
+
+.gh-page .project-stack .project-prose.gh-prose--before-final {
+  margin-bottom: 0;
+}
+
+.gh-page .project-stack--materials {
+  margin-bottom: var(--gh-gap-before-final);
+}
+
 /* Lead — first image (exhi-preview), centered portrait */
 .gh-lead {
-  margin: 0 auto var(--gh-gap);
-  max-width: var(--gh-lead-w);
+  margin: 0;
+  max-width: 100%;
 }
 
 .gh-lead img {
@@ -82,7 +117,8 @@
 
 /* Hero — wide landscape, directly above final reflection */
 .gh-hero {
-  margin: 0 auto var(--gh-gap);
+  margin: 0;
+  width: 100%;
   max-width: 100%;
 }
 
@@ -103,6 +139,9 @@
   max-width: var(--gh-content);
   margin-left: auto;
   margin-right: auto;
+}
+
+.gh-prose:not(.project-prose) {
   margin-bottom: var(--gh-gap);
 }
 
@@ -110,15 +149,12 @@
   margin: 0;
 }
 
-.gh-prose--before-final {
-  margin-bottom: var(--gh-gap-before-final);
-}
-
-/* Process — four small thumbs, centered band */
+/* Process — four small thumbs, centered band (no prose stack below) */
 .gh-process {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
+  width: 100%;
   max-width: var(--gh-process-w);
   margin: 0 auto var(--gh-gap);
 }
@@ -249,10 +285,14 @@
     max-width: min(22rem, 88vw);
   }
 
+  .gh-page .project-stack--stagger {
+    max-width: min(22rem, 88vw);
+  }
+
   .gh-stagger {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
-    max-width: min(22rem, 88vw);
+    max-width: none;
   }
 
   .gh-stagger__item--left,
@@ -268,8 +308,12 @@
     min-height: unset;
   }
 
-  .gh-materials {
+  .gh-page .project-stack--materials {
     max-width: min(20rem, 85vw);
+  }
+
+  .gh-materials {
+    max-width: none;
   }
 
   :root {
@@ -287,8 +331,12 @@
     gap: 0.4rem;
   }
 
+  .gh-page .project-stack--materials {
+    max-width: min(16rem, 80vw);
+  }
+
   .gh-materials {
     grid-template-columns: 1fr;
-    max-width: min(16rem, 80vw);
+    max-width: none;
   }
 }

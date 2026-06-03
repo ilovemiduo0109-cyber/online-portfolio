@@ -372,6 +372,82 @@ body.project-page {
 
 
 
+/* Layout B: each media block + prose directly below share one alignment width */
+
+.project-page .project-stack {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: stretch;
+
+  width: 100%;
+
+  margin-left: auto;
+
+  margin-right: auto;
+
+}
+
+
+
+.project-page .project-stack__media {
+
+  width: 100%;
+
+  max-width: 100%;
+
+  margin-left: auto;
+
+  margin-right: auto;
+
+}
+
+
+
+.project-page .project-stack .project-prose {
+
+  width: 100%;
+
+  max-width: none;
+
+  margin-left: 0;
+
+  margin-right: 0;
+
+  box-sizing: border-box;
+
+}
+
+
+
+.project-page .project-stack .project-stack__media + .project-prose {
+
+  margin-top: 1.15rem;
+
+}
+
+
+
+.project-page .project-stack .project-prose + .project-prose {
+
+  margin-top: 1.35rem;
+
+}
+
+
+
+.project-page .project-stack--full {
+
+  width: 100%;
+
+  max-width: 100%;
+
+}
+
+
+
 .project-page #meteor-layer {
 
   position: fixed;
