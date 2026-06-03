@@ -2,13 +2,9 @@ import * as THREE from "three";
 import { getFaceFrame } from "../geometry/face-text.js";
 
 const ACT1_DURATION = 0.5;
-const SCALE_DURATION = 0.5;
-const ACTIVE_FACE_SCALE = 1.15;
 /** 解构位移 = 纪念碑尺度 × 此比例（默认 5%） */
 const DECONSTRUCT_OFFSET_RATIO = 0.05;
 const MONUMENT_BOUNDS_SIZE = 5.0;
-
-const _textRelMatrix = new THREE.Matrix4();
 
 function easeOutCubic(t) {
   return 1 - (1 - t) ** 3;
@@ -34,10 +30,9 @@ function collectFadeMaterials(root) {
   return mats;
 }
 
-/** 过渡：idle → act1（其它面撤退）→ scale（被点面微放大）→ navigate */
+/** 过渡：idle → act1（其它面撤退，被点面不动）→ navigate */
 export function createTransitionController(ctx) {
   const {
-    scene,
     controls,
     slopeMeshes,
     textMeshes,
@@ -52,9 +47,6 @@ export function createTransitionController(ctx) {
   let phaseStart = 0;
   let activeFaceId = null;
   let activeHref = null;
-  let transitionGroup = null;
-  let scaleStart = 1;
-  let scaleTarget = ACTIVE_FACE_SCALE;
   const deconstructOrigins = new Map();
 
   const blueprintFadeMats = collectFadeMaterials(blueprintGroup);
@@ -131,50 +123,6 @@ export function createTransitionController(ctx) {
     });
   }
 
-  function reparentToTransitionGroup(mesh) {
-    mesh.updateMatrixWorld(true);
-    const worldPos = new THREE.Vector3();
-    const worldQuat = new THREE.Quaternion();
-    const worldScale = new THREE.Vector3();
-    mesh.matrixWorld.decompose(worldPos, worldQuat, worldScale);
-    scene.attach(mesh);
-    transitionGroup.add(mesh);
-    mesh.position.set(0, 0, 0);
-    mesh.quaternion.identity();
-    mesh.scale.set(1, 1, 1);
-    return { worldPos, worldQuat };
-  }
-
-  /** 固定世界位姿，仅用于后续 scale */
-  function beginActiveFaceGroup() {
-    const mesh = slopeMeshes.find((m) => m.userData.faceId === activeFaceId);
-    const textEntry = textMeshes.find((t) => t.face.id === activeFaceId);
-    if (!mesh) return;
-
-    transitionGroup = new THREE.Group();
-    scene.add(transitionGroup);
-
-    const meshWorld = reparentToTransitionGroup(mesh);
-    transitionGroup.position.copy(meshWorld.worldPos);
-    transitionGroup.quaternion.copy(meshWorld.worldQuat);
-    transitionGroup.scale.setScalar(1);
-
-    if (textEntry) {
-      const textMesh = textEntry.mesh;
-      textMesh.updateMatrixWorld(true);
-      mesh.updateMatrixWorld(true);
-      _textRelMatrix.copy(mesh.matrixWorld).invert().multiply(textMesh.matrixWorld);
-      scene.attach(textMesh);
-      mesh.add(textMesh);
-      textMesh.matrix.copy(_textRelMatrix);
-      textMesh.matrix.decompose(textMesh.position, textMesh.quaternion, textMesh.scale);
-      textMesh.scale.set(1, 1, 1);
-    }
-
-    scaleStart = 1;
-    scaleTarget = ACTIVE_FACE_SCALE;
-  }
-
   function navigateToProject(href) {
     try {
       sessionStorage.setItem("monument-from-transition", "1");
@@ -224,19 +172,6 @@ export function createTransitionController(ctx) {
       const t = phaseProgress(ACT1_DURATION);
       updateAct1(t);
       if (t >= 1) {
-        transitionState = "scale";
-        phaseStart = transitionClock.getElapsedTime();
-        beginActiveFaceGroup();
-      }
-      return;
-    }
-
-    if (transitionState === "scale") {
-      const t = easeOutCubic(phaseProgress(SCALE_DURATION));
-      const s = THREE.MathUtils.lerp(scaleStart, scaleTarget, t);
-      transitionGroup.scale.setScalar(s);
-      if (phaseProgress(SCALE_DURATION) >= 1) {
-        transitionState = "navigate";
         navigateToProject(activeHref);
       }
     }
