@@ -7,6 +7,8 @@ export const SLOPE_PROFILE_OPACITY_HOVER = 0.85;
 /** 贴图从中心略放大，盖住坡面边缘缝隙（>1 放大） */
 export const SLOPE_EDGE_BLEED = 1.04;
 export const SLOPE_EDGE_BLEED_SIDE = 1.05;
+/** 东面 04 profile 白边较重，单独略放大 */
+export const SLOPE_EDGE_BLEED_EAST = 1.08;
 
 const slopeVertexShader = `
   varying vec2 vUv;

@@ -4,6 +4,7 @@ import { createHatchTexture } from "../materials/procedural-textures.js";
 import {
   createSlopeMaterial,
   SLOPE_EDGE_BLEED,
+  SLOPE_EDGE_BLEED_EAST,
   SLOPE_EDGE_BLEED_SIDE,
 } from "../materials/slope-material.js";
 import { createSlopeGeometry } from "../geometry/slope-geometry.js";
@@ -71,7 +72,11 @@ export function buildMonument(ctx) {
     logSlopeProfileGuide(face, metrics);
 
     const edgeBleed =
-      face.id === "west" || face.id === "east" ? SLOPE_EDGE_BLEED_SIDE : SLOPE_EDGE_BLEED;
+      face.id === "east"
+        ? SLOPE_EDGE_BLEED_EAST
+        : face.id === "west"
+          ? SLOPE_EDGE_BLEED_SIDE
+          : SLOPE_EDGE_BLEED;
     const mat = createSlopeMaterial(new THREE.Texture(), hatch, edgeBleed);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.userData.faceId = face.id;
