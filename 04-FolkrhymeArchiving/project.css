@@ -82,6 +82,10 @@
   text-align: center;
 }
 
+.fr-page .project-stack--performance .project-prose + .fr-performance {
+  margin-top: 1.15rem;
+}
+
 .fr-page .project-stack .fr-caption.project-prose {
   margin-top: 0.85rem;
 }
