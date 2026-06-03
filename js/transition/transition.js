@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { getFaceFrame } from "../geometry/face-text.js";
 
-const ACT1_DURATION = 0.5;
+const ACT1_DURATION = 0.3;
 /** 解构位移 = 纪念碑尺度 × 此比例（默认 5%） */
 const DECONSTRUCT_OFFSET_RATIO = 0.05;
 const MONUMENT_BOUNDS_SIZE = 5.0;
@@ -47,6 +47,7 @@ export function createTransitionController(ctx) {
   let phaseStart = 0;
   let activeFaceId = null;
   let activeHref = null;
+  let didNavigate = false;
   const deconstructOrigins = new Map();
 
   const blueprintFadeMats = collectFadeMaterials(blueprintGroup);
@@ -124,6 +125,8 @@ export function createTransitionController(ctx) {
   }
 
   function navigateToProject(href) {
+    if (didNavigate) return;
+    didNavigate = true;
     try {
       sessionStorage.setItem("monument-from-transition", "1");
     } catch {
@@ -149,6 +152,7 @@ export function createTransitionController(ctx) {
     transitionState = "act1";
     activeFaceId = faceId;
     activeHref = href;
+    didNavigate = false;
     phaseStart = transitionClock.getElapsedTime();
     controls.enabled = false;
     document.body.style.cursor = "default";
@@ -172,8 +176,10 @@ export function createTransitionController(ctx) {
       const t = phaseProgress(ACT1_DURATION);
       updateAct1(t);
       if (t >= 1) {
+        transitionState = "navigate";
         navigateToProject(activeHref);
       }
+      return;
     }
   }
 
