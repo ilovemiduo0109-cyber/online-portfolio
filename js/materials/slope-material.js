@@ -4,6 +4,10 @@ import * as THREE from "three";
 export const SLOPE_PROFILE_OPACITY_REST = 0.65;
 export const SLOPE_PROFILE_OPACITY_HOVER = 0.85;
 
+/** 贴图从中心略放大，盖住坡面边缘缝隙（>1 放大） */
+export const SLOPE_EDGE_BLEED = 1.04;
+export const SLOPE_EDGE_BLEED_SIDE = 1.05;
+
 const slopeVertexShader = `
   varying vec2 vUv;
   void main() {
@@ -19,11 +23,14 @@ const slopeFragmentShader = `
   uniform float uTransitionOpacity;
   uniform float uProfileOpacityRest;
   uniform float uProfileOpacityHover;
+  uniform float uEdgeBleed;
   uniform float uZoom;
   varying vec2 vUv;
 
   void main() {
     vec2 uv = vUv;
+
+    uv = (uv - 0.5) / uEdgeBleed + 0.5;
 
     float zoom = mix(1.0, uZoom, uFocus);
     uv = (uv - 0.5) / zoom + 0.5;
@@ -46,7 +53,7 @@ const slopeFragmentShader = `
 `;
 
 /** 坡面 Shader（手稿默认 + 暗房显影；profile 使用 PNG alpha，完整 UV 不 cover 裁剪） */
-export function createSlopeMaterial(map, hatch) {
+export function createSlopeMaterial(map, hatch, edgeBleed = SLOPE_EDGE_BLEED) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uMap: { value: map },
@@ -56,6 +63,7 @@ export function createSlopeMaterial(map, hatch) {
       uTransitionOpacity: { value: 1 },
       uProfileOpacityRest: { value: SLOPE_PROFILE_OPACITY_REST },
       uProfileOpacityHover: { value: SLOPE_PROFILE_OPACITY_HOVER },
+      uEdgeBleed: { value: edgeBleed },
       uZoom: { value: 1.04 },
     },
     vertexShader: slopeVertexShader,

@@ -1,7 +1,11 @@
 import * as THREE from "three";
 import { FACES } from "../config/faces.js";
 import { createHatchTexture } from "../materials/procedural-textures.js";
-import { createSlopeMaterial } from "../materials/slope-material.js";
+import {
+  createSlopeMaterial,
+  SLOPE_EDGE_BLEED,
+  SLOPE_EDGE_BLEED_SIDE,
+} from "../materials/slope-material.js";
 import { createSlopeGeometry } from "../geometry/slope-geometry.js";
 import { buildBlueprint } from "../builders/blueprint.js";
 import { buildZaojing } from "../builders/zaojing.js";
@@ -66,7 +70,9 @@ export function buildMonument(ctx) {
     const metrics = geo.userData.edgeMetrics;
     logSlopeProfileGuide(face, metrics);
 
-    const mat = createSlopeMaterial(new THREE.Texture(), hatch);
+    const edgeBleed =
+      face.id === "west" || face.id === "east" ? SLOPE_EDGE_BLEED_SIDE : SLOPE_EDGE_BLEED;
+    const mat = createSlopeMaterial(new THREE.Texture(), hatch, edgeBleed);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.userData.faceId = face.id;
     mesh.userData.href = face.href;
