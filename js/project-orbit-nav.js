@@ -1,9 +1,9 @@
 /**
- * Subpage ring carousel: camera-centered revolution with next-project preview card.
- * Background + meteors stay fixed; full article + preview orbit together.
+ * Subpage ring carousel: revolution around the viewer; bg + meteors fixed.
+ * Both faces show title + hero + first paragraph only (no preview card chrome).
  */
 (function () {
-  const ORBIT_MS = 900;
+  const ORBIT_MS = 1100;
   const ORIGIN_V = 0.42;
 
   /** @type {{ slug: string; href: string; title: string; image: string; blurb: string }[]} */
@@ -22,7 +22,7 @@
       title: "1:1 Scale Replication: The Beijing Siheyuan Gatehouse",
       image: "exhi-preview.jpg",
       blurb:
-        "A 1:1 scale replica of a Qing Dynasty gatehouse—four months of fieldwork, stagecraft materials, and intensive craftsmanship toward historical detail.",
+        "This project is a 1:1 scale replica of a Qing Dynasty gatehouse discovered during our fieldwork in a Beijing hutong.",
     },
     {
       slug: "03-VolunteerteachingProject",
@@ -30,7 +30,7 @@
       title: "'Across the Wheat Field': Data & Memory on the Border",
       image: "hero.JPG",
       blurb:
-        "Arts education and longitudinal fieldwork along the China–Myanmar border—summer camps and home-visit archiving of individual children.",
+        "For the past four years, I deeply engaged in an arts education initiative along the China-Myanmar border.",
     },
     {
       slug: "04-FolkrhymeArchiving",
@@ -38,7 +38,7 @@
       title: "The 'Xunyao' Folk Rhyme Archiving Initiative",
       image: "hero.jpg",
       blurb:
-        "Field recording for vanishing oral nursery rhymes—sonic excavation before living memory falls silent.",
+        "As a field researcher and photographer for \"The Folk Song Rescuing Project\", I documented the vanishing oral nursery rhymes of the elder generation.",
     },
   ];
 
@@ -50,7 +50,18 @@
     return document.querySelector(".project-page article");
   }
 
-  function findPreviewForHref(nextHref) {
+  function currentSlug() {
+    return (
+      ORBIT_PROJECTS.find((p) => location.pathname.includes(p.slug))?.slug ??
+      null
+    );
+  }
+
+  function projectBySlug(slug) {
+    return ORBIT_PROJECTS.find((p) => p.slug === slug) ?? null;
+  }
+
+  function findProjectForNextHref(nextHref) {
     const target = new URL(nextHref, location.href);
     const hit = ORBIT_PROJECTS.find((p) => target.pathname.includes(p.slug));
     if (!hit) return null;
@@ -75,29 +86,92 @@
       .replace(/"/g, "&quot;");
   }
 
-  function createPreviewFace(preview, baseUrl) {
+  /** @returns {{ title: string; image: string; blurb: string }} */
+  function extractTeaserFromArticle(article) {
+    const h1 = article.querySelector("header h1");
+    let title = "";
+    if (h1) {
+      const lines = h1.querySelectorAll(
+        '[class*="title-line"], [class*="Title-line"]'
+      );
+      title = lines.length
+        ? Array.from(lines)
+            .map((el) => el.textContent.trim())
+            .filter(Boolean)
+            .join(" ")
+        : h1.textContent.replace(/\s+/g, " ").trim();
+    }
+
+    const imgEl = article.querySelector(
+      ".project-stack__media img, .project-stack figure img, header + * img, figure img"
+    );
+    let image = "";
+    if (imgEl?.getAttribute("src")) {
+      image = new URL(imgEl.getAttribute("src"), location.href).href;
+    }
+
+    const para =
+      article.querySelector("[id$='-intro'] p") ??
+      article.querySelector(".project-prose p") ??
+      article.querySelector("header ~ * p");
+    const blurb = para?.textContent?.replace(/\s+/g, " ").trim() ?? "";
+
+    return { title, image, blurb };
+  }
+
+  /** @returns {{ title: string; image: string; blurb: string; imageIsAbsolute?: boolean }} */
+  function resolveCurrentTeaser(article) {
+    const fromDom = extractTeaserFromArticle(article);
+    const fallback = projectBySlug(currentSlug());
+    const base = location.href;
+
+    const title = fromDom.title || fallback?.title || "";
+    let image = fromDom.image;
+    let imageIsAbsolute = !!fromDom.image;
+    if (!image && fallback?.image) {
+      image = new URL(fallback.image, base).href;
+      imageIsAbsolute = true;
+    }
+    const blurb = fromDom.blurb || fallback?.blurb || "";
+
+    return { title, image, blurb, imageIsAbsolute: true };
+  }
+
+  /** @param {{ title: string; image: string; blurb: string; base?: string }} data */
+  function resolveNextTeaser(data) {
+    const img =
+      data.image.startsWith("http") || data.image.startsWith("/")
+        ? data.image
+        : new URL(data.image, data.base).href;
+    return { title: data.title, image: img, blurb: data.blurb };
+  }
+
+  function createTeaserFace(teaser, yaw, extraClass) {
     const face = document.createElement("div");
-    face.className = "orbit-face";
-    face.dataset.yaw = "90";
+    face.className = `orbit-face ${extraClass || ""}`.trim();
+    face.dataset.yaw = String(yaw);
 
     const panel = document.createElement("div");
-    panel.className = "orbit-face__panel orbit-face__panel--preview";
+    panel.className = "orbit-face__panel";
 
-    const imgSrc = new URL(preview.image, baseUrl).href;
+    const imgHtml = teaser.image
+      ? `<figure class="orbit-teaser__media">
+          <img src="${escapeHtml(teaser.image)}" alt="${escapeHtml(teaser.title)}" width="640" height="480" loading="eager" decoding="async" />
+        </figure>`
+      : "";
+
     panel.innerHTML = `
-      <div class="orbit-preview">
-        <h2 class="orbit-preview__title">${escapeHtml(preview.title)}</h2>
-        <figure class="orbit-preview__media">
-          <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(preview.title)}" width="640" height="480" loading="eager" decoding="async" />
-        </figure>
-        <p class="orbit-preview__blurb">${escapeHtml(preview.blurb)}</p>
+      <div class="orbit-teaser">
+        <h2 class="orbit-teaser__title">${escapeHtml(teaser.title)}</h2>
+        ${imgHtml}
+        <p class="orbit-teaser__blurb">${escapeHtml(teaser.blurb)}</p>
       </div>`;
 
     face.appendChild(panel);
     return face;
   }
 
-  function buildOrbitStage(article) {
+  function buildOrbitStage(currentTeaser, nextTeaser) {
     const viewport = document.createElement("div");
     viewport.id = "orbit-viewport";
     viewport.className = "orbit-viewport";
@@ -111,29 +185,32 @@
     carousel.className = "orbit-carousel";
     carousel.id = "orbit-carousel";
 
-    const face0 = document.createElement("div");
-    face0.className = "orbit-face orbit-face--current";
-    face0.dataset.yaw = "0";
+    carousel.appendChild(
+      createTeaserFace(currentTeaser, 0, "orbit-face--current")
+    );
+    carousel.appendChild(createTeaserFace(nextTeaser, -90, "orbit-face--next"));
 
-    const panel0 = document.createElement("div");
-    panel0.className = "orbit-face__panel orbit-face__panel--live";
-    panel0.appendChild(article);
-
-    face0.appendChild(panel0);
-    carousel.appendChild(face0);
     pivot.appendChild(carousel);
     viewport.appendChild(pivot);
     document.body.appendChild(viewport);
 
-    return { viewport, carousel };
+    return { carousel };
   }
 
   function startCarouselTransition(nextHref) {
     const article = getArticle();
-    if (!article || article.closest("#orbit-viewport")) return;
+    if (!article || document.getElementById("orbit-viewport")) return;
 
-    const preview = findPreviewForHref(nextHref);
-    if (!preview) {
+    const nextProject = findProjectForNextHref(nextHref);
+    if (!nextProject) {
+      window.location.href = nextHref;
+      return;
+    }
+
+    const currentTeaser = resolveCurrentTeaser(article);
+    const nextTeaser = resolveNextTeaser(nextProject);
+
+    if (!currentTeaser.title || !nextTeaser.title) {
       window.location.href = nextHref;
       return;
     }
@@ -141,9 +218,7 @@
     lockScroll();
     document.documentElement.classList.add("orbit-nav-active");
 
-    const { carousel } = buildOrbitStage(article);
-    const previewFace = createPreviewFace(preview, preview.base);
-    carousel.appendChild(previewFace);
+    const { carousel } = buildOrbitStage(currentTeaser, nextTeaser);
 
     const targetUrl = new URL(nextHref, location.href).href;
     let finished = false;
