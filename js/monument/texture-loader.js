@@ -4,7 +4,7 @@ import * as THREE from "three";
 
 /** Bump when project images change (forces monument to reload textures). */
 
-export const TEXTURE_CACHE_BUST = "7";
+export const TEXTURE_CACHE_BUST = "8";
 
 
 

@@ -14,37 +14,26 @@ import {
 /**
  * 各坡面 profile.png（透明底梯形）替换指南
  * ─────────────────────────────────────
- * 顶点顺序（与 faces.js verts 一致）：v0 底左 → v1 底右 → v2 顶右 → v3 顶左（y≈0 为底，覆斗顶底窄顶宽）。
- * 几何 UV：标准四边形 [0,1]–[1,1]–[1,0]–[0,0]（v=1 底、v=0 顶）；透明梯形由 PNG alpha 裁切，shader 不做 cover 裁剪。
- * PNG：梯形主体不透明，外侧透明；画布可为矩形，实际可见区为下窄上宽的梯形。
+ * 坡面视觉：上窄下宽（窄边靠藻井 y=0，宽边在外缘 y=3.1）。
+ * 顶点：v0 窄左 → v1 窄右 → v2 宽右 → v3 宽左。
+ * UV（配合默认 flipY）：贴图顶行 u∈[m,1−m] 对齐窄边；底行 u∈[0,1] 对齐宽边。
+ *   m = (1 − 窄边宽/宽边宽) / 2，见控制台 [monument] 日志。
+ * PNG：上窄下宽；顶边不透明段水平居中、宽度 ≈ (窄/宽)×画布宽；底边满画布宽；
+ *   四角为不透明梯形顶点，顶角在 (m·W,0) 与 ((1−m)·W,0)，底角在 (0,H) 与 (W,H)。
  *
- * north（北坡，+Z 侧，Gatehouse）
- *   方向：下边短、上边长；左对齐 v0–v3，右对齐 v1–v2。
- *   边长比 底:顶 ≈ 1.10:4.70，平均坡面宽高比 planeAspect ≈ 0.75。
- *   建议贴图：透明区在四角；梯形下缘短、上缘长，整体比例接近 3:4 竖幅。
+ * north/south 窄:宽 ≈ 1.10:4.70（m≈0.38）| west 窄:宽 ≈ 1.10:6.24（m≈0.41）| east ≈ 1.10:4.10（m≈0.37）
  *
- * south（南坡，Volunteer）
- *   方向：与 north 相同（下窄上宽），沿 -Z 展开。
- *   边长比 底:顶 ≈ 1.10:4.70，planeAspect ≈ 0.75。
- *
- * west（西坡，Dunhuang）
- *   方向：下边短（近 -X 藻井口）、上边长；沿 Z 方向展宽。
- *   边长比 底:顶 ≈ 1.10:4.10，planeAspect ≈ 0.80。
- *   建议贴图：梯形短边在下（近藻井）、长边在上。
- *
- * east（东坡，Folk rhyme）
- *   方向：与 west 镜像（下窄上宽），沿 Z 展宽。
- *   边长比 底:顶 ≈ 1.10:4.10，planeAspect ≈ 0.80。
- *
- * 替换后刷新页面即可（texture v=5 cache bust）；保持 PNG alpha 通道。
+ * 替换后刷新；保持 PNG alpha。texture cache bust 见 texture-loader.js。
  */
 
 function logSlopeProfileGuide(face, metrics) {
   const { bottomW, topW, leftH, rightH, planeAspect } = metrics;
   const ratio = (bottomW / topW).toFixed(2);
+  const m = ((1 - bottomW / topW) * 0.5).toFixed(3);
   console.info(
-    `[monument] ${face.id} profile.png — bottom:top width ${bottomW.toFixed(2)}:${topW.toFixed(2)} (${ratio}), ` +
-      `left:right height ${leftH.toFixed(2)}:${rightH.toFixed(2)}, planeAspect≈${planeAspect.toFixed(2)}`
+    `[monument] ${face.id} profile.png — narrow:wide ${bottomW.toFixed(2)}:${topW.toFixed(2)} (${ratio}), ` +
+      `uvMargin m≈${m} (top opaque span ${((1 - 2 * parseFloat(m)) * 100).toFixed(0)}% width), ` +
+      `planeAspect≈${planeAspect.toFixed(2)}`
   );
 }
 

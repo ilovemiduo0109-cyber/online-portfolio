@@ -19,17 +19,30 @@ export function computeSlopeEdgeMetrics(verts) {
   return { bottomW, topW, leftH, rightH, planeAspect };
 }
 
-/** 单坡面四边形 + 标准 UV（v0 底左 → v1 底右 → v2 顶右 → v3 顶左） */
+/**
+ * 梯形 UV：窄边（y=0，v0–v1）在贴图顶行居中占宽 bottomW/topW；宽边（y=3.1）占底行 u=0..1。
+ * 与上窄下宽、顶边内缩的透明梯形 profile.png 四角对齐。
+ */
+export function computeTrapezoidUVs(verts) {
+  const { bottomW, topW } = computeSlopeEdgeMetrics(verts);
+  const maxW = Math.max(topW, 1e-6);
+  const m = Math.max(0, (1 - bottomW / maxW) * 0.5);
+  return new Float32Array([m, 1, 1 - m, 1, 1, 0, 0, 0]);
+}
+
+/** 单坡面四边形 + 梯形校正 UV（v0 底左 → v1 底右 → v2 顶右 → v3 顶左） */
 export function createSlopeGeometry(verts) {
   const geo = new THREE.BufferGeometry();
   const positions = new Float32Array(verts);
-  const uvs = new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]);
+  const uvs = computeTrapezoidUVs(verts);
   const indices = [0, 1, 2, 0, 2, 3];
   geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
   geo.setIndex(indices);
   geo.computeVertexNormals();
-  geo.userData.planeAspect = computePlaneAspect(verts);
-  geo.userData.edgeMetrics = computeSlopeEdgeMetrics(verts);
+  const metrics = computeSlopeEdgeMetrics(verts);
+  geo.userData.planeAspect = metrics.planeAspect;
+  geo.userData.edgeMetrics = metrics;
+  geo.userData.uvMargin = (1 - metrics.bottomW / Math.max(metrics.topW, 1e-6)) * 0.5;
   return geo;
 }
