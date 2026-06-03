@@ -78,8 +78,8 @@
   max-width: 100%;
 }
 
-.fr-page .project-stack .project-prose {
-  text-align: center;
+.fr-page .project-stack .project-prose:not(.fr-caption) {
+  text-align: left;
 }
 
 .fr-page .project-stack--performance .project-prose + .fr-performance {
@@ -110,7 +110,7 @@
   font-size: clamp(0.95rem, 1.35vw, 1.08rem);
   line-height: 1.82;
   color: rgba(30, 30, 30, 0.78);
-  text-align: center;
+  text-align: left;
   max-width: var(--fr-content);
   margin-left: auto;
   margin-right: auto;

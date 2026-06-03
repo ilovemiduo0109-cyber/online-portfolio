@@ -418,6 +418,18 @@ body.project-page {
 
   box-sizing: border-box;
 
+  text-align: left;
+
+}
+
+
+
+/* Image captions (e.g. Folk Rhyme) stay centered — override in project CSS */
+
+.project-page .project-stack .project-prose.fr-caption {
+
+  text-align: center;
+
 }
 
 

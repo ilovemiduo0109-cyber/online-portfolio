@@ -103,13 +103,13 @@
   object-fit: cover;
 }
 
-/* Body copy — centered column (intro + database blurb) */
+/* Body copy — left-aligned column (intro + database blurb) */
 .yt-prose {
   font-family: "Lora", serif;
   font-size: clamp(0.95rem, 1.35vw, 1.08rem);
   line-height: 1.82;
   color: rgba(30, 30, 30, 0.78);
-  text-align: center;
+  text-align: left;
   max-width: var(--yt-content);
   margin-left: auto;
   margin-right: auto;
