@@ -53,7 +53,7 @@
     const skipLine = (trimmed) => {
       const norm = normalizeQuotes(trimmed);
       if (/^the ['']?xunyao['']? folk rhyme archiving initiative$/i.test(norm)) return true;
-      if (/^live performance for villagers$/i.test(norm)) return true;
+      if (/^live performance with villagers$/i.test(norm)) return true;
       if (/^field recording excerpt/i.test(norm)) return true;
       if (/^https?:\/\//i.test(norm)) return true;
       if (/youtu\.?be/i.test(norm)) return true;
