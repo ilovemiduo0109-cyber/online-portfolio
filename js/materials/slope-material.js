@@ -23,12 +23,15 @@ const slopeFragmentShader = `
     uv = (uv - 0.5) / zoom + 0.5;
 
     vec4 photo = texture2D(uMap, uv);
-    if (photo.a < 0.02) discard;
+    if (photo.a < 0.08) discard;
 
-    float lum = dot(photo.rgb, vec3(0.2126, 0.7152, 0.0722));
+    vec3 rgb = photo.rgb * photo.a;
+    float lum = dot(rgb, vec3(0.2126, 0.7152, 0.0722));
     float sat = mix(0.25, 0.65, uFocus);
-    vec3 rgb = mix(vec3(lum), photo.rgb, sat);
-    rgb = min(rgb * 1.1, vec3(1.0));
+    rgb = mix(vec3(lum), rgb, sat);
+    if (photo.a >= 0.5) {
+      rgb = min(rgb * 1.1, vec3(1.0));
+    }
     float alpha = photo.a * mix(0.45, 1.0, uFocus) * (1.0 - uFade * 0.45) * uTransitionOpacity;
     gl_FragColor = vec4(rgb, alpha);
   }
