@@ -49,7 +49,10 @@ const transition = createTransitionController(ctx);
 
 setupInteraction(ctx, transition);
 
-
+// bfcache restores mid-transition WebGL state; reload for a clean monument.
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) location.reload();
+});
 
 const clock = new THREE.Clock();
 

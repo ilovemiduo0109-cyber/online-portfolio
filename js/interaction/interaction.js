@@ -134,12 +134,6 @@ function setupDesktopInteraction(ctx, transition) {
   host.addEventListener("pointerenter", updateHoverFromPointer);
   host.addEventListener("pointermove", updateHoverFromPointer);
 
-  window.addEventListener("pageshow", (event) => {
-    if (event.persisted) {
-      resetInteractionState();
-    }
-  });
-
   host.addEventListener("click", () => {
     if (transition.isTransitioning || !interaction.hoveredId) return;
     const m = slopeMeshes.find((s) => s.userData.faceId === interaction.hoveredId);
