@@ -1,7 +1,7 @@
 /**
  * 横向线条流星雨 — 右→左
  * 首页：默认尺寸与透明度
- * 子页：线条 ×0.5；每条线横穿时间 = 同距离首页随机速度下的时间 + 0.7s
+ * 子页：线条 ×0.5、透明度与首页相同；横穿时间 = 同距离首页随机速度下的时间 + 0.7s
  */
 (function () {
   const isMobile = window.matchMedia(
@@ -17,7 +17,7 @@
     document.body.classList.contains("project-page");
 
   const SIZE_SCALE = isSubpage ? 0.5 : 1;
-  const ALPHA_SCALE = isSubpage ? 0.7 : 1;
+  const ALPHA_SCALE = 1;
   const SUBPAGE_CROSS_EXTRA_SEC = 0.7;
   const HOME_SPEED_MIN = 0.4;
   const HOME_SPEED_MAX = 1.9;
