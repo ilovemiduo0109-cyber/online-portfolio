@@ -4,7 +4,7 @@ import * as THREE from "three";
 
 /** Bump when project images change (forces monument to reload textures). */
 
-export const TEXTURE_CACHE_BUST = "9";
+export const TEXTURE_CACHE_BUST = "10";
 
 
 
@@ -48,11 +48,11 @@ export function createProjectTextureLoader() {
 
 
 
-/** 透明底梯形 profile.png：保留 RGBA alpha，线性采样减轻透明边白晕 */
+/** 透明底梯形 profile.png：premultiplied alpha + 线性采样，减轻东/西坡白边 */
 
 export function configureSlopeProfileTexture(tex) {
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.premultiplyAlpha = false;
+  tex.premultiplyAlpha = true;
   tex.format = THREE.RGBAFormat;
   tex.generateMipmaps = false;
   tex.minFilter = THREE.LinearFilter;
