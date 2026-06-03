@@ -19,26 +19,11 @@ export function computeSlopeEdgeMetrics(verts) {
   return { bottomW, topW, leftH, rightH, planeAspect };
 }
 
-/**
- * 梯形坡面 UV：按底/顶边宽与左右边高的比例设置角点 u/v，避免标准矩形 UV 在
- * 上宽下窄（覆斗顶）四边形上产生水平拉伸。纹理 v=1 为底、v=0 为顶。
- */
-export function computeTrapezoidUVs(verts) {
-  const { bottomW, topW } = computeSlopeEdgeMetrics(verts);
-  const maxW = Math.max(bottomW, topW, 1e-6);
-  return new Float32Array([
-    0, 1,
-    bottomW / maxW, 1,
-    topW / maxW, 0,
-    0, 0,
-  ]);
-}
-
-/** 单坡面 + 梯形校正 UV */
+/** 单坡面四边形 + 标准 UV（v0 底左 → v1 底右 → v2 顶右 → v3 顶左） */
 export function createSlopeGeometry(verts) {
   const geo = new THREE.BufferGeometry();
   const positions = new Float32Array(verts);
-  const uvs = computeTrapezoidUVs(verts);
+  const uvs = new Float32Array([0, 1, 1, 1, 1, 0, 0, 0]);
   const indices = [0, 1, 2, 0, 2, 3];
   geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geo.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
