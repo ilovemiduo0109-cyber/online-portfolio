@@ -75,7 +75,6 @@ export function createTransitionController(ctx) {
   let activeFaceId = null;
   let activeHref = null;
   let transitionGroup = null;
-  let transitionBorder = null;
   let act2StartPos = new THREE.Vector3();
   let act2EndPos = new THREE.Vector3();
   let act2StartQuat = new THREE.Quaternion();
@@ -263,16 +262,6 @@ export function createTransitionController(ctx) {
   }
 
   function beginAct3() {
-    const mesh = transitionGroup.children.find(
-      (c) => c.userData?.faceId === activeFaceId && !c.userData.isText
-    );
-    if (mesh?.geometry && !transitionBorder) {
-      transitionBorder = new THREE.LineSegments(
-        new THREE.EdgesGeometry(mesh.geometry),
-        new THREE.LineBasicMaterial({ color: 0x111111 })
-      );
-      mesh.add(transitionBorder);
-    }
     transitionGroup.updateMatrixWorld(true);
     act3StartScale = transitionGroup.scale.x;
     act3TargetScale = act3StartScale * computeFillViewportScale(transitionGroup);
