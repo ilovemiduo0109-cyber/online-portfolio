@@ -12,6 +12,13 @@
   />
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="project.css" />
+  <script>
+    try {
+      if (sessionStorage.getItem("project-orbit-enter") === "1") {
+        document.documentElement.classList.add("orbit-nav-active", "project-orbit-enter");
+      }
+    } catch (e) {}
+  </script>
 </head>
 <body
   class="wrapper project-page gatehouse-page"
@@ -109,6 +116,7 @@
   </article>
 
   <script src="../meteor.js"></script>
+  <script src="../js/project-orbit-nav.js"></script>
   <script src="gatehouse-page.js"></script>
 </body>
 </html>

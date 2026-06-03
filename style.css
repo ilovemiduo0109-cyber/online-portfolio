@@ -640,6 +640,68 @@ body.project-page {
 
 
 
+/* Subpage orbit nav: rotate article only; bg + meteors fixed */
+
+html.orbit-nav-active {
+
+  perspective: 1400px;
+
+  overflow: hidden;
+
+}
+
+
+
+.project-page article {
+
+  transform-style: preserve-3d;
+
+  backface-visibility: hidden;
+
+}
+
+
+
+.project-page article.orbit-nav-exit {
+
+  transition:
+    transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 720ms ease;
+
+  transform: rotateY(-84deg) scale(0.9) translateZ(-90px);
+
+  opacity: 0.32;
+
+  pointer-events: none;
+
+}
+
+
+
+html.project-orbit-enter .project-page article {
+
+  transform: rotateY(84deg) scale(0.9) translateZ(-90px);
+
+  opacity: 0.32;
+
+}
+
+
+
+html.project-orbit-enter .project-page article.orbit-nav-enter-active {
+
+  transition:
+    transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 720ms ease;
+
+  transform: rotateY(0deg) scale(1) translateZ(0);
+
+  opacity: 1;
+
+}
+
+
+
 /* 首页 → 子页 View Transition（减少闪屏） */
 
 @view-transition {
