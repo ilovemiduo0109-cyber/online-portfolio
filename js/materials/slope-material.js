@@ -1,5 +1,8 @@
 import * as THREE from "three";
 
+/** 四坡 profile 首图不透明度 = 原先 mix(0.92, 1.0) 包络的 65% */
+export const SLOPE_PROFILE_OPACITY_SCALE = 0.65;
+
 const slopeVertexShader = `
   varying vec2 vUv;
   void main() {
@@ -13,6 +16,7 @@ const slopeFragmentShader = `
   uniform float uFocus;
   uniform float uFade;
   uniform float uTransitionOpacity;
+  uniform float uProfileOpacity;
   uniform float uZoom;
   varying vec2 vUv;
 
@@ -33,7 +37,7 @@ const slopeFragmentShader = `
       straight = min(straight * 1.1, vec3(1.0));
     }
     vec3 rgb = straight * photo.a;
-    float alpha = photo.a * mix(0.92, 1.0, uFocus) * (1.0 - uFade * 0.45) * uTransitionOpacity;
+    float alpha = photo.a * mix(0.92, 1.0, uFocus) * (1.0 - uFade * 0.45) * uTransitionOpacity * uProfileOpacity;
     gl_FragColor = vec4(rgb, alpha);
   }
 `;
@@ -47,6 +51,7 @@ export function createSlopeMaterial(map, hatch) {
       uFocus: { value: 0 },
       uFade: { value: 0 },
       uTransitionOpacity: { value: 1 },
+      uProfileOpacity: { value: SLOPE_PROFILE_OPACITY_SCALE },
       uZoom: { value: 1.04 },
     },
     vertexShader: slopeVertexShader,
