@@ -106,8 +106,7 @@
 
 /* spacing between sections */
 .dh-prose,
-.dh-zaojing-pair,
-.dh-lotus,
+.dh-zaojing-trio,
 .dh-split,
 .dh-exhi {
   margin-bottom: var(--dh-section-gap);
@@ -140,45 +139,47 @@
   object-fit: cover;
 }
 
-/* —— Zaojing pair (OG + sketch, same row) —— */
-.dh-zaojing-pair {
+/* —— Zaojing trio (OG + sketch + lotus) —— */
+.dh-zaojing-trio {
+  container-type: inline-size;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.65rem;
-  max-width: min(42rem, 92vw);
+  max-width: 100%;
   margin-left: auto;
   margin-right: auto;
+  align-items: start;
 }
 
-.dh-zaojing-pair .dh-zaojing {
+.dh-zaojing-trio__item {
   margin: 0;
-  max-width: none;
 }
 
-.dh-zaojing-pair .dh-zaojing img {
+.dh-zaojing-trio__item:not(:first-child) {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.dh-zaojing-trio__item img {
   display: block;
-  width: 100%;
   height: auto;
-  aspect-ratio: 1;
-  object-fit: cover;
+  object-fit: contain;
 }
 
-.dh-lotus {
-  margin-top: -1.5rem;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: min(11rem, 42vw);
-}
-
-.dh-lotus img {
-  display: block;
+.dh-zaojing-trio__item:first-child img {
   width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-  object-fit: cover;
 }
 
-/* —— Split: image left, text right —— */
+/* Match sketch + lotus rendered height to OG (432/457) without cropping */
+.dh-zaojing-trio__item:nth-child(2) img,
+.dh-zaojing-trio__item:nth-child(3) img {
+  max-height: calc(((100cqw - 1.3rem) / 3) * 432 / 457);
+  width: auto;
+  max-width: 100%;
+}
+
+/* —— Split: image left, mural text right —— */
 .dh-split {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -189,19 +190,35 @@
 
 .dh-split__media {
   margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dh-split__media img {
   display: block;
   width: 100%;
   height: auto;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .dh-prose--split {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   text-align: left;
   max-width: none;
   margin: 0;
+}
+
+.dh-mural-text {
+  font-family: "Lora", serif;
+  font-style: italic;
+  font-size: clamp(0.78rem, 1.05vw, 0.85rem);
+  line-height: 1.62;
+  color: rgba(30, 30, 30, 0.58);
+  margin: 0;
+  text-align: left;
 }
 
 /* —— Exhibition wide —— */
@@ -262,6 +279,10 @@
     margin-right: auto;
   }
 
+  .dh-mural-text {
+    text-align: center;
+  }
+
   .dh-split__media {
     max-width: min(22rem, 88vw);
     margin-left: auto;
@@ -284,7 +305,19 @@
     aspect-ratio: 16 / 10;
   }
 
-  .dh-lotus {
-    margin-top: 0;
+  .dh-zaojing-trio {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    max-width: min(20rem, 88vw);
+  }
+
+  .dh-zaojing-trio__item:not(:first-child) {
+    display: block;
+  }
+
+  .dh-zaojing-trio__item:nth-child(2) img,
+  .dh-zaojing-trio__item:nth-child(3) img {
+    max-height: none;
+    width: 100%;
   }
 }

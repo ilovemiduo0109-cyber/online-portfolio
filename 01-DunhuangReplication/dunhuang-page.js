@@ -24,6 +24,11 @@
     el.innerHTML = paragraphs.map((t) => `<p>${escapeHtml(t)}</p>`).join("");
   };
 
+  const renderMural = (el, text) => {
+    if (!el || !text) return;
+    el.innerHTML = `<p class="dh-mural-text">${escapeHtml(text)}</p>`;
+  };
+
   function escapeHtml(str) {
     return str
       .replace(/&/g, "&amp;")
@@ -59,6 +64,10 @@
     return paragraphs;
   }
 
+  function findParagraph(paragraphs, pattern) {
+    return paragraphs.find((p) => pattern.test(p)) ?? null;
+  }
+
   try {
     const res = await fetch(textUrl);
     if (!res.ok) throw new Error(res.statusText);
@@ -67,9 +76,9 @@
     render(slots.intro, paragraphs.slice(0, 1));
     render(slots.mid1, paragraphs.slice(1, 2));
     render(slots.mid2, paragraphs.slice(2, 3));
-    render(slots.split, paragraphs.slice(4, 5));
-    render(slots.exhiLead, paragraphs.slice(3, 4));
-    render(slots.final, paragraphs.slice(5));
+    renderMural(slots.split, findParagraph(paragraphs, /^The transcendence of/i));
+    render(slots.exhiLead, [findParagraph(paragraphs, /^However, due to severe/i)].filter(Boolean));
+    render(slots.final, [findParagraph(paragraphs, /^Witnessing this inevitable/i)].filter(Boolean));
   } catch {
     slots.intro.innerHTML = "<p>Content could not be loaded.</p>";
   }
