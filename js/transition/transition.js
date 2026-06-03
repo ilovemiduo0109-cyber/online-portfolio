@@ -1,37 +1,17 @@
 import * as THREE from "three";
-import { FACES } from "../config/faces.js";
 import { getFaceFrame } from "../geometry/face-text.js";
 
 const ACT1_DURATION = 0.5;
-const ACT2_DURATION = 1.0;
-const ACT3_DURATION = 0.5;
+const SCALE_DURATION = 0.5;
+const ACTIVE_FACE_SCALE = 1.15;
 /** 解构位移 = 纪念碑尺度 × 此比例（默认 5%） */
 const DECONSTRUCT_OFFSET_RATIO = 0.05;
 const MONUMENT_BOUNDS_SIZE = 5.0;
-const PULL_DISTANCE = 2.6;
-const ACT3_NDC_MARGIN = 0.96;
 
-const _toCam = new THREE.Vector3();
-const _ndc = new THREE.Vector3();
-const _box3 = new THREE.Box3();
-const _boxCorners = [
-  new THREE.Vector3(),
-  new THREE.Vector3(),
-  new THREE.Vector3(),
-  new THREE.Vector3(),
-  new THREE.Vector3(),
-  new THREE.Vector3(),
-  new THREE.Vector3(),
-  new THREE.Vector3(),
-];
 const _textRelMatrix = new THREE.Matrix4();
 
 function easeOutCubic(t) {
   return 1 - (1 - t) ** 3;
-}
-
-function easeInCubic(t) {
-  return t ** 3;
 }
 
 function setMaterialOpacity(mat, opacity) {
@@ -54,13 +34,11 @@ function collectFadeMaterials(root) {
   return mats;
 }
 
-/** 三幕过渡：idle → act1 → act2 → act3 → navigate */
+/** 过渡：idle → act1（其它面撤退）→ scale（被点面微放大）→ navigate */
 export function createTransitionController(ctx) {
   const {
     scene,
-    camera,
     controls,
-    monument,
     slopeMeshes,
     textMeshes,
     blueprintGroup,
@@ -75,12 +53,8 @@ export function createTransitionController(ctx) {
   let activeFaceId = null;
   let activeHref = null;
   let transitionGroup = null;
-  let act2StartPos = new THREE.Vector3();
-  let act2EndPos = new THREE.Vector3();
-  let act2StartQuat = new THREE.Quaternion();
-  let act2TargetQuat = new THREE.Quaternion();
-  let act3StartScale = 1;
-  let act3TargetScale = 1;
+  let scaleStart = 1;
+  let scaleTarget = ACTIVE_FACE_SCALE;
   const deconstructOrigins = new Map();
 
   const blueprintFadeMats = collectFadeMaterials(blueprintGroup);
@@ -92,38 +66,6 @@ export function createTransitionController(ctx) {
 
   function getFaceOutwardAxis(faceVerts) {
     return getFaceFrame(faceVerts).normal.clone();
-  }
-
-  function computeFaceScreenQuaternion(faceVerts) {
-    monument.updateMatrixWorld();
-    const frame = getFaceFrame(faceVerts);
-    let n = frame.normal.clone().transformDirection(monument.matrixWorld);
-    const center = frame.bottomMid
-      .clone()
-      .add(frame.topMid)
-      .multiplyScalar(0.5)
-      .applyMatrix4(monument.matrixWorld);
-    _toCam.copy(camera.position).sub(center).normalize();
-    if (n.dot(_toCam) < 0) n.negate();
-
-    const slopeUp = frame.up.clone().transformDirection(monument.matrixWorld).normalize();
-    const camUp = new THREE.Vector3(0, 1, 0);
-    let r = new THREE.Vector3().crossVectors(camUp, n);
-    if (r.lengthSq() < 1e-5) {
-      r.copy(frame.right.clone().transformDirection(monument.matrixWorld));
-    }
-    r.normalize();
-
-    let u = new THREE.Vector3().crossVectors(n, r).normalize();
-    if (u.dot(slopeUp) < 0) {
-      u.negate();
-      r.negate();
-    }
-    r.crossVectors(u, n).normalize();
-    u.crossVectors(n, r).normalize();
-    n.crossVectors(r, u).normalize();
-
-    return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(r, u, n));
   }
 
   function storeDeconstructOrigins(faceId) {
@@ -203,11 +145,11 @@ export function createTransitionController(ctx) {
     return { worldPos, worldQuat };
   }
 
-  function beginAct2() {
-    const face = FACES.find((f) => f.id === activeFaceId);
+  /** 固定世界位姿，仅用于后续 scale */
+  function beginActiveFaceGroup() {
     const mesh = slopeMeshes.find((m) => m.userData.faceId === activeFaceId);
     const textEntry = textMeshes.find((t) => t.face.id === activeFaceId);
-    if (!face || !mesh) return;
+    if (!mesh) return;
 
     transitionGroup = new THREE.Group();
     scene.add(transitionGroup);
@@ -215,6 +157,7 @@ export function createTransitionController(ctx) {
     const meshWorld = reparentToTransitionGroup(mesh);
     transitionGroup.position.copy(meshWorld.worldPos);
     transitionGroup.quaternion.copy(meshWorld.worldQuat);
+    transitionGroup.scale.setScalar(1);
 
     if (textEntry) {
       const textMesh = textEntry.mesh;
@@ -228,43 +171,8 @@ export function createTransitionController(ctx) {
       textMesh.scale.set(1, 1, 1);
     }
 
-    monument.updateMatrixWorld();
-    const pullAxis = getFaceOutwardAxis(face.verts).transformDirection(monument.matrixWorld).normalize();
-    _toCam.copy(camera.position).sub(transitionGroup.position).normalize();
-    const pullDir = pullAxis.dot(_toCam) < 0 ? pullAxis.clone().negate() : pullAxis;
-
-    act2StartPos.copy(transitionGroup.position);
-    act2EndPos.copy(act2StartPos).addScaledVector(pullDir, PULL_DISTANCE);
-    transitionGroup.getWorldQuaternion(act2StartQuat);
-    act2TargetQuat.copy(computeFaceScreenQuaternion(face.verts));
-  }
-
-  function computeFillViewportScale(group) {
-    group.updateMatrixWorld(true);
-    _box3.setFromObject(group);
-    if (_box3.isEmpty()) return 1;
-    _boxCorners[0].set(_box3.min.x, _box3.min.y, _box3.min.z);
-    _boxCorners[1].set(_box3.max.x, _box3.min.y, _box3.min.z);
-    _boxCorners[2].set(_box3.min.x, _box3.max.y, _box3.min.z);
-    _boxCorners[3].set(_box3.max.x, _box3.max.y, _box3.min.z);
-    _boxCorners[4].set(_box3.min.x, _box3.min.y, _box3.max.z);
-    _boxCorners[5].set(_box3.max.x, _box3.min.y, _box3.max.z);
-    _boxCorners[6].set(_box3.min.x, _box3.max.y, _box3.max.z);
-    _boxCorners[7].set(_box3.max.x, _box3.max.y, _box3.max.z);
-
-    let maxNdc = 0;
-    _boxCorners.forEach((c) => {
-      _ndc.copy(c).project(camera);
-      maxNdc = Math.max(maxNdc, Math.abs(_ndc.x), Math.abs(_ndc.y));
-    });
-    if (maxNdc < 1e-4) return 1;
-    return ACT3_NDC_MARGIN / maxNdc;
-  }
-
-  function beginAct3() {
-    transitionGroup.updateMatrixWorld(true);
-    act3StartScale = transitionGroup.scale.x;
-    act3TargetScale = act3StartScale * computeFillViewportScale(transitionGroup);
+    scaleStart = 1;
+    scaleTarget = ACTIVE_FACE_SCALE;
   }
 
   function navigateToProject(href) {
@@ -316,30 +224,18 @@ export function createTransitionController(ctx) {
       const t = phaseProgress(ACT1_DURATION);
       updateAct1(t);
       if (t >= 1) {
-        transitionState = "act2";
+        transitionState = "scale";
         phaseStart = transitionClock.getElapsedTime();
-        beginAct2();
+        beginActiveFaceGroup();
       }
       return;
     }
 
-    if (transitionState === "act2") {
-      const t = easeOutCubic(phaseProgress(ACT2_DURATION));
-      transitionGroup.position.lerpVectors(act2StartPos, act2EndPos, t);
-      transitionGroup.quaternion.copy(act2StartQuat).slerp(act2TargetQuat, t);
-      if (phaseProgress(ACT2_DURATION) >= 1) {
-        transitionState = "act3";
-        phaseStart = transitionClock.getElapsedTime();
-        beginAct3();
-      }
-      return;
-    }
-
-    if (transitionState === "act3") {
-      const t = easeInCubic(phaseProgress(ACT3_DURATION));
-      const s = THREE.MathUtils.lerp(act3StartScale, act3TargetScale, t);
+    if (transitionState === "scale") {
+      const t = easeOutCubic(phaseProgress(SCALE_DURATION));
+      const s = THREE.MathUtils.lerp(scaleStart, scaleTarget, t);
       transitionGroup.scale.setScalar(s);
-      if (phaseProgress(ACT3_DURATION) >= 1) {
+      if (phaseProgress(SCALE_DURATION) >= 1) {
         transitionState = "navigate";
         navigateToProject(activeHref);
       }
