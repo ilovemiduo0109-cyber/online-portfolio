@@ -640,11 +640,13 @@ body.project-page {
 
 
 
-/* Subpage orbit nav: rotate article only; bg + meteors fixed */
+/* Subpage ring carousel: revolution around viewport; bg + meteors fixed */
 
 html.orbit-nav-active {
 
-  perspective: 1400px;
+  perspective: min(1400px, 95vw);
+
+  perspective-origin: 50% 42vh;
 
   overflow: hidden;
 
@@ -652,25 +654,131 @@ html.orbit-nav-active {
 
 
 
-.project-page article {
+.orbit-viewport {
+
+  --orbit-radius: min(1100px, 85vw);
+
+  --orbit-panel-w: min(52rem, 92vw);
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 6;
+
+  overflow: hidden;
+
+  pointer-events: none;
 
   transform-style: preserve-3d;
-
-  backface-visibility: hidden;
 
 }
 
 
 
-.project-page article.orbit-nav-exit {
+.orbit-pivot {
 
-  transition:
-    transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 720ms ease;
+  position: absolute;
 
-  transform: rotateY(-84deg) scale(0.9) translateZ(-90px);
+  left: 50%;
 
-  opacity: 0.32;
+  width: 0;
+
+  height: 0;
+
+  transform-style: preserve-3d;
+
+}
+
+
+
+.orbit-carousel {
+
+  position: absolute;
+
+  left: 0;
+
+  top: 0;
+
+  transform-style: preserve-3d;
+
+  transform: rotateY(0deg);
+
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+
+}
+
+
+
+.orbit-carousel.orbit-carousel--spin {
+
+  transform: rotateY(-90deg);
+
+}
+
+
+
+.orbit-face {
+
+  position: absolute;
+
+  left: 0;
+
+  top: 0;
+
+  width: var(--orbit-panel-w);
+
+  margin-left: calc(var(--orbit-panel-w) / -2);
+
+  transform-style: preserve-3d;
+
+  backface-visibility: hidden;
+
+  transform: rotateY(calc(var(--orbit-yaw, 0) * 1deg)) translateZ(calc(-1 * var(--orbit-radius)));
+
+}
+
+
+
+.orbit-face[data-yaw="0"] {
+
+  --orbit-yaw: 0;
+
+}
+
+
+
+.orbit-face[data-yaw="90"] {
+
+  --orbit-yaw: 90;
+
+}
+
+
+
+.orbit-carousel.orbit-carousel--spin .orbit-face--current {
+
+  opacity: 0.38;
+
+  transition: opacity 900ms ease;
+
+}
+
+
+
+.orbit-face__panel {
+
+  transform: translateY(-18vh);
+
+}
+
+
+
+.orbit-face__panel--live {
+
+  max-height: 88vh;
+
+  overflow: hidden;
 
   pointer-events: none;
 
@@ -678,25 +786,95 @@ html.orbit-nav-active {
 
 
 
-html.project-orbit-enter .project-page article {
+.orbit-face__panel--preview {
 
-  transform: rotateY(84deg) scale(0.9) translateZ(-90px);
-
-  opacity: 0.32;
+  pointer-events: none;
 
 }
 
 
 
-html.project-orbit-enter .project-page article.orbit-nav-enter-active {
+/* —— Preview card (next face on the ring) —— */
 
-  transition:
-    transform 720ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 720ms ease;
+.orbit-preview {
 
-  transform: rotateY(0deg) scale(1) translateZ(0);
+  box-sizing: border-box;
 
-  opacity: 1;
+  width: var(--orbit-panel-w);
+
+  max-height: 88vh;
+
+  padding: 1.5rem 1.75rem 2rem;
+
+  margin: 0 auto;
+
+  text-align: left;
+
+  background: rgba(196, 194, 190, 0.42);
+
+  backdrop-filter: blur(6px);
+
+  box-shadow: 0 18px 48px rgba(30, 30, 30, 0.14);
+
+}
+
+
+
+.orbit-preview__title {
+
+  font-family: "JetBrains Mono", monospace;
+
+  font-weight: 700;
+
+  font-size: clamp(0.85rem, 2.2vw, 1.15rem);
+
+  letter-spacing: 0.05em;
+
+  line-height: 1.45;
+
+  color: rgba(30, 30, 30, 0.84);
+
+  margin: 0 0 1.25rem;
+
+}
+
+
+
+.orbit-preview__media {
+
+  margin: 0 0 1.15rem;
+
+}
+
+
+
+.orbit-preview__media img {
+
+  display: block;
+
+  width: 100%;
+
+  max-height: min(42vh, 22rem);
+
+  object-fit: cover;
+
+  box-shadow: 0 12px 36px rgba(30, 30, 30, 0.12);
+
+}
+
+
+
+.orbit-preview__blurb {
+
+  font-family: "Lora", serif;
+
+  font-size: 1rem;
+
+  line-height: 1.65;
+
+  color: rgba(30, 30, 30, 0.72);
+
+  margin: 0;
 
 }
 

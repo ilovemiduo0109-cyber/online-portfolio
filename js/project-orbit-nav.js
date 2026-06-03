@@ -1,11 +1,46 @@
 /**
- * Subpage → subpage: rotate article only (bg + meteors stay fixed).
- * Triggered by #project-next. ~0.72s exit + ~0.72s enter.
+ * Subpage ring carousel: camera-centered revolution with next-project preview card.
+ * Background + meteors stay fixed; full article + preview orbit together.
  */
 (function () {
-  const ORBIT_MS = 720;
+  const ORBIT_MS = 900;
   const ORIGIN_V = 0.42;
-  const STORAGE_ENTER = "project-orbit-enter";
+
+  /** @type {{ slug: string; href: string; title: string; image: string; blurb: string }[]} */
+  const ORBIT_PROJECTS = [
+    {
+      slug: "01-DunhuangReplication",
+      href: "../02-GatehouseReplication/",
+      title: "Visual Replication of Dunhuang Cave 285 Ceiling",
+      image: "hero.jpg",
+      blurb:
+        "Physical replication is more than just making a copy; it is a rigorous method of close observation to understand how ancient craftsmen structured their work.",
+    },
+    {
+      slug: "02-GatehouseReplication",
+      href: "../03-VolunteerteachingProject/",
+      title: "1:1 Scale Replication: The Beijing Siheyuan Gatehouse",
+      image: "exhi-preview.jpg",
+      blurb:
+        "A 1:1 scale replica of a Qing Dynasty gatehouse—four months of fieldwork, stagecraft materials, and intensive craftsmanship toward historical detail.",
+    },
+    {
+      slug: "03-VolunteerteachingProject",
+      href: "../04-FolkrhymeArchiving/",
+      title: "'Across the Wheat Field': Data & Memory on the Border",
+      image: "hero.JPG",
+      blurb:
+        "Arts education and longitudinal fieldwork along the China–Myanmar border—summer camps and home-visit archiving of individual children.",
+    },
+    {
+      slug: "04-FolkrhymeArchiving",
+      href: "../01-DunhuangReplication/",
+      title: "The 'Xunyao' Folk Rhyme Archiving Initiative",
+      image: "hero.jpg",
+      blurb:
+        "Field recording for vanishing oral nursery rhymes—sonic excavation before living memory falls silent.",
+    },
+  ];
 
   function prefersReducedMotion() {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -15,10 +50,12 @@
     return document.querySelector(".project-page article");
   }
 
-  function setTransformOrigin(article) {
-    const r = article.getBoundingClientRect();
-    const oy = ((window.innerHeight * ORIGIN_V - r.top) / r.height) * 100;
-    article.style.transformOrigin = `50% ${Math.max(0, Math.min(100, oy))}%`;
+  function findPreviewForHref(nextHref) {
+    const target = new URL(nextHref, location.href);
+    const hit = ORBIT_PROJECTS.find((p) => target.pathname.includes(p.slug));
+    if (!hit) return null;
+    const base = target.href.endsWith("/") ? target.href : `${target.href}/`;
+    return { ...hit, base };
   }
 
   function lockScroll() {
@@ -30,66 +67,107 @@
     document.body.style.width = "100%";
   }
 
-  function clearOrbitClasses(article) {
-    document.documentElement.classList.remove(
-      "orbit-nav-active",
-      "project-orbit-enter"
-    );
-    if (article) {
-      article.classList.remove("orbit-nav-exit", "orbit-nav-enter-active");
-      article.style.transformOrigin = "";
-      article.style.willChange = "";
-    }
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
-  /* Early class for enter (also set via inline in subpage <head>) */
-  try {
-    if (
-      !prefersReducedMotion() &&
-      sessionStorage.getItem(STORAGE_ENTER) === "1"
-    ) {
-      document.documentElement.classList.add(
-        "orbit-nav-active",
-        "project-orbit-enter"
-      );
-    }
-  } catch {
-    /* ignore */
+  function createPreviewFace(preview, baseUrl) {
+    const face = document.createElement("div");
+    face.className = "orbit-face";
+    face.dataset.yaw = "90";
+
+    const panel = document.createElement("div");
+    panel.className = "orbit-face__panel orbit-face__panel--preview";
+
+    const imgSrc = new URL(preview.image, baseUrl).href;
+    panel.innerHTML = `
+      <div class="orbit-preview">
+        <h2 class="orbit-preview__title">${escapeHtml(preview.title)}</h2>
+        <figure class="orbit-preview__media">
+          <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(preview.title)}" width="640" height="480" loading="eager" decoding="async" />
+        </figure>
+        <p class="orbit-preview__blurb">${escapeHtml(preview.blurb)}</p>
+      </div>`;
+
+    face.appendChild(panel);
+    return face;
   }
 
-  function runEnter() {
-    let flag = false;
-    try {
-      flag = sessionStorage.getItem(STORAGE_ENTER) === "1";
-      if (flag) sessionStorage.removeItem(STORAGE_ENTER);
-    } catch {
-      /* ignore */
-    }
-    if (!flag || prefersReducedMotion()) return;
+  function buildOrbitStage(article) {
+    const viewport = document.createElement("div");
+    viewport.id = "orbit-viewport";
+    viewport.className = "orbit-viewport";
+    viewport.setAttribute("aria-hidden", "true");
 
+    const pivot = document.createElement("div");
+    pivot.className = "orbit-pivot";
+    pivot.style.top = `${ORIGIN_V * 100}vh`;
+
+    const carousel = document.createElement("div");
+    carousel.className = "orbit-carousel";
+    carousel.id = "orbit-carousel";
+
+    const face0 = document.createElement("div");
+    face0.className = "orbit-face orbit-face--current";
+    face0.dataset.yaw = "0";
+
+    const panel0 = document.createElement("div");
+    panel0.className = "orbit-face__panel orbit-face__panel--live";
+    panel0.appendChild(article);
+
+    face0.appendChild(panel0);
+    carousel.appendChild(face0);
+    pivot.appendChild(carousel);
+    viewport.appendChild(pivot);
+    document.body.appendChild(viewport);
+
+    return { viewport, carousel };
+  }
+
+  function startCarouselTransition(nextHref) {
     const article = getArticle();
-    if (!article) return;
+    if (!article || article.closest("#orbit-viewport")) return;
 
-    document.documentElement.classList.add(
-      "orbit-nav-active",
-      "project-orbit-enter"
-    );
-    setTransformOrigin(article);
-    article.style.willChange = "transform, opacity";
+    const preview = findPreviewForHref(nextHref);
+    if (!preview) {
+      window.location.href = nextHref;
+      return;
+    }
+
+    lockScroll();
+    document.documentElement.classList.add("orbit-nav-active");
+
+    const { carousel } = buildOrbitStage(article);
+    const previewFace = createPreviewFace(preview, preview.base);
+    carousel.appendChild(previewFace);
+
+    const targetUrl = new URL(nextHref, location.href).href;
+    let finished = false;
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      window.location.replace(targetUrl);
+    };
+
+    const onEnd = (ev) => {
+      if (ev.target !== carousel || ev.propertyName !== "transform") return;
+      carousel.removeEventListener("transitionend", onEnd);
+      finish();
+    };
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        article.classList.add("orbit-nav-enter-active");
+        carousel.classList.add("orbit-carousel--spin");
       });
     });
 
-    const done = (ev) => {
-      if (ev.target !== article || ev.propertyName !== "transform") return;
-      article.removeEventListener("transitionend", done);
-      clearOrbitClasses(article);
-    };
-    article.addEventListener("transitionend", done);
-    setTimeout(() => clearOrbitClasses(article), ORBIT_MS + 100);
+    carousel.addEventListener("transitionend", onEnd);
+    setTimeout(finish, ORBIT_MS + 120);
   }
 
   function setupNextLink() {
@@ -102,51 +180,15 @@
 
     next.addEventListener("click", (e) => {
       if (prefersReducedMotion()) return;
-
-      const article = getArticle();
-      if (!article) return;
-
       e.preventDefault();
-      if (article.classList.contains("orbit-nav-exit")) return;
-
-      lockScroll();
-      document.documentElement.classList.add("orbit-nav-active");
-      setTransformOrigin(article);
-      article.style.willChange = "transform, opacity";
-
-      let finished = false;
-      const finish = () => {
-        if (finished) return;
-        finished = true;
-        try {
-          sessionStorage.setItem(STORAGE_ENTER, "1");
-        } catch {
-          /* ignore */
-        }
-        window.location.href = href;
-      };
-
-      const onEnd = (ev) => {
-        if (ev.target !== article || ev.propertyName !== "transform") return;
-        article.removeEventListener("transitionend", onEnd);
-        finish();
-      };
-
-      requestAnimationFrame(() => {
-        article.classList.add("orbit-nav-exit");
-      });
-      article.addEventListener("transitionend", onEnd);
-      setTimeout(finish, ORBIT_MS + 80);
+      if (document.getElementById("orbit-viewport")) return;
+      startCarouselTransition(href);
     });
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      runEnter();
-      setupNextLink();
-    });
+    document.addEventListener("DOMContentLoaded", setupNextLink);
   } else {
-    runEnter();
     setupNextLink();
   }
 })();
