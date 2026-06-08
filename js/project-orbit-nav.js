@@ -207,6 +207,7 @@
     const viewport = document.createElement("div");
     viewport.id = "orbit-viewport";
     viewport.className = "orbit-viewport";
+    viewport.style.setProperty("--orbit-pivot-v", `${ORIGIN_V * 100}vh`);
     viewport.setAttribute("aria-hidden", "true");
 
     const pivot = document.createElement("div");

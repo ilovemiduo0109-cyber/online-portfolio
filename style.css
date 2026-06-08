@@ -668,6 +668,8 @@ html.orbit-nav-active .project-page > article {
 
   --orbit-panel-w: min(52rem, 92vw);
 
+  --orbit-pivot-v: 42vh;
+
   position: fixed;
 
   inset: 0;
@@ -767,6 +769,10 @@ html.orbit-nav-active .project-page > article {
 
 
 .orbit-face__panel {
+
+  /* Pivot is at --orbit-pivot-v; pull panel up so page top aligns with viewport */
+
+  transform: translateY(calc(-1 * var(--orbit-pivot-v, 42vh)));
 
   pointer-events: none;
 
