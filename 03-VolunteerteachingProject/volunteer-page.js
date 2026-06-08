@@ -126,3 +126,111 @@
     slots.intro.innerHTML = "<p>Content could not be loaded.</p>";
   }
 })();
+
+(function initDatabaseTranslate() {
+  const figure = document.querySelector(".yt-database--interactive");
+  if (!figure) return;
+
+  const stage = figure.querySelector(".yt-database__stage");
+  const bubblesLayer = figure.querySelector(".yt-database__bubbles");
+  const toggleBtn = figure.querySelector(".yt-database__translate-hint");
+  const bubbles = figure.querySelectorAll(".yt-db-bubble");
+  if (!stage || !bubblesLayer || !toggleBtn || !bubbles.length) return;
+
+  const STORAGE_KEY = "yt-database-bubble-positions";
+
+  function loadPositions() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    } catch {
+      return {};
+    }
+  }
+
+  function savePosition(id, left, top) {
+    const positions = loadPositions();
+    positions[id] = { left, top };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+  }
+
+  function applySavedPositions() {
+    const positions = loadPositions();
+    bubbles.forEach((bubble) => {
+      const id = bubble.dataset.id;
+      const saved = id && positions[id];
+      if (!saved) return;
+      bubble.style.left = `${saved.left}px`;
+      bubble.style.top = `${saved.top}px`;
+    });
+  }
+
+  function makeDraggable(bubble) {
+    let startX = 0;
+    let startY = 0;
+    let originLeft = 0;
+    let originTop = 0;
+
+    bubble.addEventListener("pointerdown", (e) => {
+      if (!figure.classList.contains("is-translated")) return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const stageRect = stage.getBoundingClientRect();
+      const bubbleRect = bubble.getBoundingClientRect();
+      originLeft = bubbleRect.left - stageRect.left;
+      originTop = bubbleRect.top - stageRect.top;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      bubble.style.left = `${originLeft}px`;
+      bubble.style.top = `${originTop}px`;
+      bubble.classList.add("is-dragging");
+      bubble.setPointerCapture(e.pointerId);
+    });
+
+    bubble.addEventListener("pointermove", (e) => {
+      if (!bubble.classList.contains("is-dragging")) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      bubble.style.left = `${originLeft + dx}px`;
+      bubble.style.top = `${originTop + dy}px`;
+    });
+
+    const endDrag = (e) => {
+      if (!bubble.classList.contains("is-dragging")) return;
+      bubble.classList.remove("is-dragging");
+      if (bubble.dataset.id) {
+        savePosition(
+          bubble.dataset.id,
+          parseFloat(bubble.style.left),
+          parseFloat(bubble.style.top)
+        );
+      }
+      if (e.pointerId !== undefined) {
+        try {
+          bubble.releasePointerCapture(e.pointerId);
+        } catch {
+          /* already released */
+        }
+      }
+    };
+
+    bubble.addEventListener("pointerup", endDrag);
+    bubble.addEventListener("pointercancel", endDrag);
+  }
+
+  function setTranslated(on) {
+    figure.classList.toggle("is-translated", on);
+    bubblesLayer.hidden = !on;
+    bubblesLayer.setAttribute("aria-hidden", on ? "false" : "true");
+    toggleBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    toggleBtn.textContent = on ? "click here to show original" : "click here to translate";
+  }
+
+  applySavedPositions();
+  bubbles.forEach(makeDraggable);
+
+  toggleBtn.addEventListener("click", () => {
+    setTranslated(!figure.classList.contains("is-translated"));
+  });
+})();
