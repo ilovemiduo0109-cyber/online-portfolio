@@ -147,6 +147,13 @@
   margin-top: var(--yt-gap);
 }
 
+#yt-final.yt-prose--final {
+  max-width: none;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
 /* Database screenshot — spans full column */
 .yt-database {
   width: 100%;
@@ -422,9 +429,15 @@
   }
 
   .yt-prose--left,
-  .yt-prose--final,
   .yt-prose--split {
     max-width: var(--yt-content);
+  }
+
+  #yt-final.yt-prose--final {
+    max-width: none;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   .yt-prose--split {
