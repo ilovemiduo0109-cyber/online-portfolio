@@ -691,10 +691,9 @@ html.orbit-nav-active .project-page > article {
   margin-top: calc(-50vh);
   transform-style: preserve-3d;
   backface-visibility: hidden;
-  /* inward wall: negative Z + flip panel toward user */
+  /* inward wall at negative Z; panel faces user without extra face flip */
   transform: rotateY(calc(var(--orbit-yaw, 0) * 1deg))
-    translateZ(calc(-1 * var(--orbit-depth)))
-    rotateY(180deg);
+    translateZ(calc(-1 * var(--orbit-depth)));
 }
 .orbit-face[data-yaw="0"] {
   --orbit-yaw: 0;
