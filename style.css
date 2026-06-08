@@ -640,176 +640,83 @@ body.project-page {
 
 
 
-/* Subpage square-prism carousel: four faces, fixed depth, minimal zoom */
-
+/* Subpage inner square room: user at center, four inward-facing walls */
 html.orbit-nav-active {
-
   perspective: 2600px;
-
-  perspective-origin: 50% 0;
-
+  perspective-origin: 50% 50%;
   overflow: hidden;
-
 }
-
-
-
 html.orbit-nav-active .project-page > article {
-
   visibility: hidden;
-
 }
-
-
-
 .orbit-viewport {
-
-  /* Half the face width = distance from column center to each wall (square prism) */
-
   --orbit-panel-w: min(52rem, 92vw);
-
+  /* distance from user (center) to each inner wall */
   --orbit-depth: calc(var(--orbit-panel-w) * 0.5);
-
   position: fixed;
-
   inset: 0;
-
   z-index: 6;
-
   overflow: hidden;
-
   pointer-events: none;
-
   transform-style: preserve-3d;
-
 }
-
-
-
+/* rotation axis = user position (viewport center) */
 .orbit-pivot {
-
   position: absolute;
-
   left: 50%;
-
-  top: 0;
-
+  top: 50%;
   width: 0;
-
   height: 0;
-
   transform-style: preserve-3d;
-
 }
-
-
-
 .orbit-carousel {
-
   position: absolute;
-
   left: 0;
-
   top: 0;
-
   transform-style: preserve-3d;
-
   transform: rotateY(0deg);
-
   transition: transform 1100ms ease-in-out;
-
 }
-
-
-
-/* Current exits left, next enters from right */
-
+/* room rotates: current wall exits left, next wall enters from right */
 .orbit-carousel.orbit-carousel--spin {
-
   transform: rotateY(90deg);
-
 }
-
-
-
 .orbit-face {
-
   position: absolute;
-
   left: 0;
-
   top: 0;
-
   width: var(--orbit-panel-w);
-
   margin-left: calc(var(--orbit-panel-w) / -2);
-
+  /* slice top aligns with viewport top when wall is front-facing */
+  margin-top: calc(-50vh);
   transform-style: preserve-3d;
-
   backface-visibility: hidden;
-
-  transform: rotateY(calc(var(--orbit-yaw, 0) * 1deg)) translateZ(var(--orbit-depth));
-
+  /* inward wall: negative Z + flip panel toward user */
+  transform: rotateY(calc(var(--orbit-yaw, 0) * 1deg))
+    translateZ(calc(-1 * var(--orbit-depth)))
+    rotateY(180deg);
 }
-
-
-
 .orbit-face[data-yaw="0"] {
-
   --orbit-yaw: 0;
-
 }
-
-
-
 .orbit-face[data-yaw="-90"] {
-
   --orbit-yaw: -90;
-
 }
-
-
-
 .orbit-face__panel {
-
   pointer-events: none;
-
 }
-
-
-
-/* Viewport-height slice of real article (not a separate preview card) */
-
 .orbit-face__slice {
-
   width: var(--orbit-panel-w);
-
   max-height: 100vh;
-
   overflow: hidden;
-
   margin: 0 auto;
-
 }
-
-
-
 .orbit-face__slice > article {
-
   width: 100%;
-
   max-width: var(--orbit-panel-w);
-
   margin: 0 auto;
-
   box-sizing: border-box;
-
 }
-
-
-
-/* Orbit spin: back links before project.css swap (avoid default purple/serif) */
-
 .orbit-face__slice .dh-back,
 .orbit-face__slice .gh-back,
 .orbit-face__slice .yt-back,
@@ -818,23 +725,13 @@ html.orbit-nav-active .project-page > article {
 .orbit-face__slice .gh-back-monument,
 .orbit-face__slice .yt-back-monument,
 .orbit-face__slice .fr-back-monument {
-
   font-family: "JetBrains Mono", monospace;
-
   font-size: 0.58rem;
-
   letter-spacing: 0.22em;
-
   text-transform: uppercase;
-
   color: var(--ink);
-
   text-decoration: none;
-
 }
-
-
-
 .orbit-face__slice .dh-back:visited,
 .orbit-face__slice .gh-back:visited,
 .orbit-face__slice .yt-back:visited,
@@ -843,9 +740,7 @@ html.orbit-nav-active .project-page > article {
 .orbit-face__slice .gh-back-monument:visited,
 .orbit-face__slice .yt-back-monument:visited,
 .orbit-face__slice .fr-back-monument:visited {
-
   color: var(--ink);
-
 }
 
 

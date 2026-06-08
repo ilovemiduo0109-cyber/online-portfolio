@@ -215,6 +215,7 @@
     carousel.className = "orbit-carousel";
     carousel.id = "orbit-carousel";
 
+    // Inner room: current wall yaw 0, next wall yaw -90 (right); carousel +90deg
     carousel.appendChild(createFaceFromSlice(currentSlice, 0, "orbit-face--current"));
     carousel.appendChild(createFaceFromSlice(nextSlice, -90, "orbit-face--next"));
 
