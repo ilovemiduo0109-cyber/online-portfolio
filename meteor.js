@@ -4,6 +4,8 @@
  * 子页：线条 ×0.5、透明度与首页相同；横穿时间 = 同距离首页随机速度下的时间 + 0.7s
  */
 (function () {
+  if (window.frameElement?.dataset?.orbitPrefetch) return;
+
   const isMobile = window.matchMedia(
     "(max-width: 768px), (hover: none) and (pointer: coarse)"
   ).matches;

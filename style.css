@@ -768,89 +768,37 @@ html.orbit-nav-active .project-page > article {
 
 .orbit-face__panel {
 
-  transform: translateY(-50%);
-
   pointer-events: none;
 
 }
 
 
 
-/* Teaser: title + hero + first paragraph (no card chrome) */
+/* Viewport-height slice of real article (not a separate preview card) */
 
-.orbit-teaser {
-
-  box-sizing: border-box;
+.orbit-face__slice {
 
   width: var(--orbit-panel-w);
 
-  padding: 0 1.75rem;
+  max-height: 100vh;
+
+  overflow: hidden;
 
   margin: 0 auto;
 
-  text-align: left;
-
 }
 
 
 
-.orbit-teaser__title {
-
-  font-family: "JetBrains Mono", monospace;
-
-  font-weight: 700;
-
-  font-size: clamp(0.85rem, 2.2vw, 1.15rem);
-
-  letter-spacing: 0.05em;
-
-  line-height: 1.45;
-
-  color: rgba(30, 30, 30, 0.84);
-
-  margin: 0 0 1.25rem;
-
-}
-
-
-
-.orbit-teaser__media {
-
-  margin: 0 0 1.15rem;
-
-}
-
-
-
-.orbit-teaser__media img {
-
-  display: block;
+.orbit-face__slice > article {
 
   width: 100%;
 
-  max-height: min(40vh, 20rem);
+  max-width: var(--orbit-panel-w);
 
-  object-fit: cover;
+  margin: 0 auto;
 
-  box-shadow: 0 12px 36px rgba(30, 30, 30, 0.12);
-
-}
-
-
-
-.orbit-teaser__blurb {
-
-  font-family: "Lora", serif;
-
-  font-size: 1rem;
-
-  line-height: 1.65;
-
-  color: rgba(30, 30, 30, 0.72);
-
-  margin: 0;
-
-  max-width: 42rem;
+  box-sizing: border-box;
 
 }
 
