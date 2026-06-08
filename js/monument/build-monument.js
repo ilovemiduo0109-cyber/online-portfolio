@@ -58,7 +58,7 @@ export function buildMonument(ctx) {
   const textMeshes = [];
 
   monument.rotation.x = Math.PI - 0.08;
-  monument.rotation.y = Math.PI / 6;
+  monument.rotation.y = Math.PI / 4;
   monument.scale.set(0.8064, 0.48384, 0.8064);
   monument.position.y = 2.65;
 
