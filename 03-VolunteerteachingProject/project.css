@@ -143,6 +143,13 @@
   margin-bottom: var(--yt-gap-wide);
 }
 
+#yt-mid2.yt-prose--left {
+  max-width: none;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
 #yt-final {
   margin-top: var(--yt-gap);
 }
@@ -428,11 +435,11 @@
     gap: 2rem;
   }
 
-  .yt-prose--left,
   .yt-prose--split {
     max-width: var(--yt-content);
   }
 
+  #yt-mid2.yt-prose--left,
   #yt-final.yt-prose--final {
     max-width: none;
     width: 100%;
