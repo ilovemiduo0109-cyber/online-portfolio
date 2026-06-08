@@ -640,13 +640,13 @@ body.project-page {
 
 
 
-/* Subpage ring carousel: revolution around viewer; bg + meteors fixed */
+/* Subpage square-prism carousel: four faces, fixed depth, minimal zoom */
 
 html.orbit-nav-active {
 
-  perspective: min(1000px, 88vw);
+  perspective: 2600px;
 
-  perspective-origin: 50% 42vh;
+  perspective-origin: 50% 0;
 
   overflow: hidden;
 
@@ -664,11 +664,11 @@ html.orbit-nav-active .project-page > article {
 
 .orbit-viewport {
 
-  --orbit-radius: min(1680px, 118vw);
+  /* Half the face width = distance from column center to each wall (square prism) */
 
   --orbit-panel-w: min(52rem, 92vw);
 
-  --orbit-pivot-v: 42vh;
+  --orbit-depth: calc(var(--orbit-panel-w) * 0.5);
 
   position: fixed;
 
@@ -691,6 +691,8 @@ html.orbit-nav-active .project-page > article {
   position: absolute;
 
   left: 50%;
+
+  top: 0;
 
   width: 0;
 
@@ -746,7 +748,7 @@ html.orbit-nav-active .project-page > article {
 
   backface-visibility: hidden;
 
-  transform: rotateY(calc(var(--orbit-yaw, 0) * 1deg)) translateZ(calc(-1 * var(--orbit-radius)));
+  transform: rotateY(calc(var(--orbit-yaw, 0) * 1deg)) translateZ(var(--orbit-depth));
 
 }
 
@@ -769,10 +771,6 @@ html.orbit-nav-active .project-page > article {
 
 
 .orbit-face__panel {
-
-  /* Pivot is at --orbit-pivot-v; pull panel up so page top aligns with viewport */
-
-  transform: translateY(calc(-1 * var(--orbit-pivot-v, 42vh)));
 
   pointer-events: none;
 

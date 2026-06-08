@@ -4,7 +4,6 @@
  */
 (function () {
   const ORBIT_MS = 1100;
-  const ORIGIN_V = 0.42;
   const PREFETCH_TIMEOUT_MS = 10000;
   const CONTENT_POLL_MS = 80;
 
@@ -207,12 +206,10 @@
     const viewport = document.createElement("div");
     viewport.id = "orbit-viewport";
     viewport.className = "orbit-viewport";
-    viewport.style.setProperty("--orbit-pivot-v", `${ORIGIN_V * 100}vh`);
     viewport.setAttribute("aria-hidden", "true");
 
     const pivot = document.createElement("div");
     pivot.className = "orbit-pivot";
-    pivot.style.top = `${ORIGIN_V * 100}vh`;
 
     const carousel = document.createElement("div");
     carousel.className = "orbit-carousel";
