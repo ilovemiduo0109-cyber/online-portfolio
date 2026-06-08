@@ -39,13 +39,30 @@
     document.body.style.width = "100%";
   }
 
-  function unlockScroll(scrollTop = 0) {
+  function disableScrollRestoration() {
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+  }
+
+  function scrollPageToTop() {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }
+
+  function unlockScrollToTop() {
+    scrollPageToTop();
     document.body.style.overflow = "";
     document.body.style.position = "";
     document.body.style.top = "";
     document.body.style.width = "";
     delete document.body.dataset.orbitScrollY;
-    window.scrollTo(0, scrollTop);
+    scrollPageToTop();
+    requestAnimationFrame(() => {
+      scrollPageToTop();
+      requestAnimationFrame(scrollPageToTop);
+    });
   }
 
   function absolutizeUrls(root, baseUrl) {
@@ -212,18 +229,34 @@
 
   function syncProjectStylesheet(iframeDoc, pageBase) {
     const srcLink = iframeDoc.querySelector('link[href$="project.css"]');
-    if (!srcLink) return;
+    if (!srcLink) return Promise.resolve();
 
     const href = new URL(srcLink.getAttribute("href"), pageBase).href;
     let link = document.querySelector('link[href$="project.css"]');
-    if (link) {
+
+    if (link?.href === href) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "stylesheet";
+        document.head.appendChild(link);
+      }
+
+      link.addEventListener("load", done, { once: true });
+      link.addEventListener("error", done, { once: true });
       link.href = href;
-    } else {
-      link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = href;
-      document.head.appendChild(link);
-    }
+
+      if (link.sheet) done();
+      setTimeout(done, 150);
+    });
   }
 
   function applyPageFromIframe(iframe, targetUrl) {
@@ -256,8 +289,10 @@
     }
     document.title = doc.title;
 
-    syncProjectStylesheet(doc, base);
+    disableScrollRestoration();
     history.replaceState({ orbitPage: true }, "", base);
+    syncProjectStylesheet(doc, base);
+    scrollPageToTop();
   }
 
   function teardownOrbit(viewport) {
@@ -327,8 +362,11 @@
         return;
       }
 
+      disableScrollRestoration();
       lockScroll();
       document.documentElement.classList.add("orbit-nav-active");
+
+      await syncProjectStylesheet(iframe.contentDocument, targetUrl);
 
       const currentSlice = createSliceFromArticle(article, location.href);
       const nextSlice = createSliceFromArticle(nextArticle, targetUrl);
@@ -339,7 +377,7 @@
 
       applyPageFromIframe(iframe, targetUrl);
       teardownOrbit(viewport);
-      unlockScroll(0);
+      unlockScrollToTop();
       destroyPrefetch();
 
       const following = getNextHref();
@@ -368,6 +406,7 @@
   function init() {
     if (window.frameElement?.dataset?.orbitPrefetch) return;
     if (!document.body.classList.contains("project-page")) return;
+    disableScrollRestoration();
     document.addEventListener("click", onDocumentClick);
     setupPrefetchObserver();
     const href = getNextHref();

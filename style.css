@@ -804,6 +804,48 @@ html.orbit-nav-active .project-page > article {
 
 
 
+/* Orbit spin: back links before project.css swap (avoid default purple/serif) */
+
+.orbit-face__slice .dh-back,
+.orbit-face__slice .gh-back,
+.orbit-face__slice .yt-back,
+.orbit-face__slice .fr-back,
+.orbit-face__slice .dh-back-monument,
+.orbit-face__slice .gh-back-monument,
+.orbit-face__slice .yt-back-monument,
+.orbit-face__slice .fr-back-monument {
+
+  font-family: "JetBrains Mono", monospace;
+
+  font-size: 0.58rem;
+
+  letter-spacing: 0.22em;
+
+  text-transform: uppercase;
+
+  color: var(--ink);
+
+  text-decoration: none;
+
+}
+
+
+
+.orbit-face__slice .dh-back:visited,
+.orbit-face__slice .gh-back:visited,
+.orbit-face__slice .yt-back:visited,
+.orbit-face__slice .fr-back:visited,
+.orbit-face__slice .dh-back-monument:visited,
+.orbit-face__slice .gh-back-monument:visited,
+.orbit-face__slice .yt-back-monument:visited,
+.orbit-face__slice .fr-back-monument:visited {
+
+  color: var(--ink);
+
+}
+
+
+
 /* 首页 → 子页 View Transition（减少闪屏） */
 
 @view-transition {
