@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { createGrainTexture } from "../materials/procedural-textures.js";
-import { createTextPanel } from "../geometry/face-text.js";
 
 /** 藻井深渊 */
 export function buildZaojing(monument) {
@@ -23,26 +22,6 @@ export function buildZaojing(monument) {
   );
   lip.position.y = lipH * 0.5;
   group.add(lip);
-
-  const label = createTextPanel(
-    {
-      tag: "[ ZAOJING // CORE ]",
-      title: "WEN TIAN ARCHITECTURE",
-      epigraph: "",
-    },
-    1,
-    {
-      canvasW: 1024,
-      canvasH: 512,
-      maxTextWidth: 860,
-      planeW: 2.8,
-      planeH: 1.4,
-    }
-  );
-  label.scale.set(0.42, 0.22, 1);
-  label.rotation.x = -Math.PI / 2;
-  label.position.y = lipH * 0.5 + 0.04;
-  group.add(label);
 
   monument.add(group);
   return group;
