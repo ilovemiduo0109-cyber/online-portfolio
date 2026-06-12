@@ -78,7 +78,7 @@
     render(slots.mid2, paragraphs.slice(2, 3));
     renderMural(slots.split, findParagraph(paragraphs, /^The transcendence of/i));
     render(slots.exhiLead, [findParagraph(paragraphs, /^However, due to severe/i)].filter(Boolean));
-    render(slots.final, [findParagraph(paragraphs, /^Witnessing this inevitable/i)].filter(Boolean));
+    render(slots.final, [findParagraph(paragraphs, /^Witnessing this/i)].filter(Boolean));
   } catch {
     slots.intro.innerHTML = "<p>Content could not be loaded.</p>";
   }
