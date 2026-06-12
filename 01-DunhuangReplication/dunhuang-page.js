@@ -2,6 +2,8 @@
  * Dunhuang 01 — loads text-content.txt into layout slots (Figma order).
  */
 (async function () {
+  const CONTENT_VERSION = "16";
+
   const body = document.body;
   const textUrl = body.dataset.text;
   const nextHref = body.dataset.next;
@@ -68,8 +70,13 @@
     return paragraphs.find((p) => pattern.test(p)) ?? null;
   }
 
+  function textUrlWithVersion(url) {
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}v=${CONTENT_VERSION}`;
+  }
+
   try {
-    const res = await fetch(textUrl);
+    const res = await fetch(textUrlWithVersion(textUrl));
     if (!res.ok) throw new Error(res.statusText);
     const paragraphs = parseParagraphs(await res.text());
 
@@ -77,8 +84,8 @@
     render(slots.mid1, paragraphs.slice(1, 2));
     render(slots.mid2, paragraphs.slice(2, 3));
     renderMural(slots.split, findParagraph(paragraphs, /^The transcendence of/i));
-    render(slots.exhiLead, [findParagraph(paragraphs, /^However, due to severe/i)].filter(Boolean));
-    render(slots.final, [findParagraph(paragraphs, /^Witnessing this/i)].filter(Boolean));
+    render(slots.exhiLead, paragraphs.slice(-2, -1));
+    render(slots.final, paragraphs.slice(-1));
   } catch {
     slots.intro.innerHTML = "<p>Content could not be loaded.</p>";
   }
